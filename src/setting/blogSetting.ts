@@ -1,5 +1,5 @@
 export const categories = ["all", "技术", "前端", "开发", "生活"];
-
+//以下两个配置项如无需求，无须改动
 /**
  * CC 协议类型
  */
@@ -31,15 +31,17 @@ export interface BlogCopyrightConfig {
  * 默认转载声明配置
  */
 export const copyrightConfig: BlogCopyrightConfig = {
-  showCopyright: true,
-  defaultLicense: "CC BY-NC-SA",
-  author: "XuHaoYang",
-  siteName: "个人博客",
+  showCopyright: true, //是否显示版权声明
+  defaultLicense: "CC BY-NC-SA", //默认版权声明协议
+  author: "XuHaoYang", //作者
+  siteName: "个人博客", //你网站的名称
   siteUrl: "https://xuhaoyang.top", //这里填写你的域名
 };
 
+export const EndWord = "感谢阅读！"; //每一篇博客结尾的话
+
 /**
- * 获取 CC 协议信息
+ * 获取 CC 协议信息，无需改动
  */
 export const getCCLicenseInfo = (type: CCLicenseType) => {
   const licenseMap = {

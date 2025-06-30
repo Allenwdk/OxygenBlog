@@ -9,7 +9,9 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ClipboardIcon } from '@heroicons/react/24/outline';
 import CopyrightNotice from '@/components/CopyrightNotice';
 import OptimizedImage from '@/components/OptimizedImage';
+import TableOfContents from '@/components/TableOfContents';
 import 'katex/dist/katex.min.css';
+import { EndWord } from '@/setting/blogSetting';
 
 /**
  * 标准化编程语言名称，解决大小写敏感问题
@@ -204,7 +206,10 @@ interface LinkProps {
 export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 pt-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 目录组件 */}
+      <TableOfContents content={blog.content} />
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 md:pr-72">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -263,6 +268,29 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                   content={blog.content}
                   components={{
                      p({ children, ...props }: ComponentProps) {
+                       const childrenArray = React.Children.toArray(children);
+                       
+                       // 检查是否包含块级元素（div、组件等）
+                       const hasBlockElements = childrenArray.some(child => {
+                         if (React.isValidElement(child)) {
+                           // 检查是否是 div 元素或其他块级HTML元素
+                           if (typeof child.type === 'string') {
+                             const blockElements = ['div', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'main', 'figure', 'figcaption', 'blockquote', 'pre', 'table', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+                             return blockElements.includes(child.type);
+                           }
+                           // 检查是否是React组件（函数组件或类组件）
+                           if (typeof child.type === 'function' || typeof child.type === 'object') {
+                             return true;
+                           }
+                         }
+                         return false;
+                       });
+                       
+                       // 如果包含块级元素或React组件，直接返回子元素而不包裹在p标签中
+                       if (hasBlockElements) {
+                         return <>{children}</>;
+                       }
+                       
                        return (
                          <p className="my-4 leading-relaxed text-gray-700 dark:text-gray-300" {...props}>
                            {children}
@@ -412,43 +440,61 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                         );
                       },
                       h1({ children }: ComponentProps) {
+                       const id = typeof children === 'string' ? 
+                         children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
+                         React.Children.toArray(children).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h1 className="text-3xl font-bold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white no-underline">
+                         <h1 id={id} className="text-3xl font-bold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white no-underline">
                            {children}
                          </h1>
                        );
                      },
                      h2({ children }: ComponentProps) {
+                       const id = typeof children === 'string' ? 
+                         children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
+                         React.Children.toArray(children).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h2 className="text-2xl font-semibold mt-6 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white no-underline">
+                         <h2 id={id} className="text-2xl font-semibold mt-6 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white no-underline">
                            {children}
                          </h2>
                        );
                      },
-                     h3({ children }: any) {
+                     h3({ children }: { children: React.ReactNode }) {
+                       const id = typeof children === 'string' ? 
+                         children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
+                         React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h3 className="text-xl font-semibold mt-5 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h3 id={id} className="text-xl font-semibold mt-5 mb-2 text-gray-900 dark:text-white no-underline">
                            {children}
                          </h3>
                        );
                      },
-                     h4({ children }: any) {
+                     h4({ children }: { children: React.ReactNode }) {
+                       const id = typeof children === 'string' ? 
+                         children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
+                         React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h4 className="text-lg font-semibold mt-4 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h4 id={id} className="text-lg font-semibold mt-4 mb-2 text-gray-900 dark:text-white no-underline">
                            {children}
                          </h4>
                        );
                      },
-                     h5({ children }: any) {
+                     h5({ children }: { children: React.ReactNode }) {
+                       const id = typeof children === 'string' ? 
+                         children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
+                         React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h5 className="text-base font-semibold mt-3 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h5 id={id} className="text-base font-semibold mt-3 mb-2 text-gray-900 dark:text-white no-underline">
                            {children}
                          </h5>
                        );
                      },
-                     h6({ children }: any) {
+                     h6({ children }: { children: React.ReactNode }) {
+                       const id = typeof children === 'string' ? 
+                         children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
+                         React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h6 className="text-sm font-semibold mt-3 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h6 id={id} className="text-sm font-semibold mt-3 mb-2 text-gray-900 dark:text-white no-underline">
                            {children}
                          </h6>
                        );
@@ -490,16 +536,14 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                        if (!src) return null;
                        
                        return (
-                         <div className="my-6 flex justify-center">
-                           <OptimizedImage
-                             src={src}
-                             alt={alt || ''}
-                             title={title}
-                             className="max-w-full shadow-lg"
-                             width={800}
-                             height={600}
-                           />
-                         </div>
+                         <OptimizedImage
+                           src={src}
+                           alt={alt || ''}
+                           title={title}
+                           className="my-2 mx-auto block max-w-full shadow-lg"
+                           width={800}
+                           height={600}
+                         />
                        );
                      }
                     }}
@@ -529,7 +573,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
               ← 返回列表
             </Link>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              感谢阅读！
+              {EndWord}
             </div>
           </motion.div>
         </motion.div>

@@ -10,7 +10,7 @@ import { motion } from 'motion/react';
 import Image from 'next/image';
 import MailIcon from '@/assets/mail.svg';
 import GitHubIcon from '@/assets/github.svg';
-import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, mainContactMeDescription, subContactMeDescription, mail, github, }
+import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, mainContactMeDescription, subContactMeDescription, mail, github, isBorder}
 from '@/setting/AboutSetting';
 
 
@@ -35,11 +35,11 @@ export default function AboutPage() {
               <div className="text-3xl md:text-4xl lg:text-5xl font-semibold max-w-4xl mx-auto relative z-20 py-3 bg-clip-text text-transparent bg-gradient-to-b from-neutral-800 via-neutral-700 to-neutral-700 dark:from-neutral-200 dark:via-white dark:to-white">
                 {BeforeAnimationText}<Cover>{AnimationText}</Cover>
               </div>
-              <div className="border border-black/[0.2] dark:border-white/[0.2] flex flex-col items-start max-w-sm mx-auto p-4 relative h-[30rem]">
-                <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black" />
-                <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-black" />
-                <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-black" />
-                <Icon className="absolute h-6 w-6 -bottom-3 -right-3 dark:text-white text-black" />
+              <div className={`${isBorder ? 'border border-black/[0.2] dark:border-white/[0.2]' : ''} flex flex-col items-start max-w-sm mx-auto p-4 relative h-[30rem]`}>
+                {isBorder && <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black" />}
+                {isBorder && <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-black" />}
+                {isBorder && <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-black" />}
+                {isBorder && <Icon className="absolute h-6 w-6 -bottom-3 -right-3 dark:text-white text-black" />}
  
                 <EvervaultCard />
  

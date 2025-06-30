@@ -1,7 +1,7 @@
 ---
 title: 示例文章
 date: 2024-01-15
-category: 技术分享
+category: 技术
 tags: ["Markdown", "渲染", "展示"]
 readTime: 8
 excerpt: 展示博客平台强大的 Markdown 渲染能力，包括代码高亮、数学公式、表格等丰富功能。
@@ -188,7 +188,7 @@ $$F(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i\omega t} dt$$
 - [React 官方文档](https://react.dev/)
 - [Next.js 文档](https://nextjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/)
-- ![博客图片演示](./example.svg)
+- ![博客图片演示](../assets/example.svg)
 
 ## 分隔线
 

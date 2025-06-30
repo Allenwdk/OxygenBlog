@@ -25,8 +25,14 @@ export default function OptimizedImage({
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(false);
+  const [isInView, setIsInView] = useState(priority); // 优先级图片默认可见
+  const [isMounted, setIsMounted] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
+
+  // 确保组件已挂载，避免水合不匹配
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // 使用 Intersection Observer 实现懒加载
   useEffect(() => {
@@ -55,11 +61,22 @@ export default function OptimizedImage({
 
   const isExternal = src.startsWith('http');
 
+  // 服务端渲染时返回简单占位符，避免水合不匹配
+  if (!isMounted) {
+    return (
+      <div ref={imgRef} className={`relative overflow-hidden rounded-lg max-w-full shadow-lg ${className}`}>
+        <div className="bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ width, height: Math.min(height, 600) }}>
+          <div className="text-gray-400 dark:text-gray-500 text-sm">加载中...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (hasError) {
     return (
       <motion.div
         ref={imgRef}
-        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 p-8 rounded-lg min-h-[200px] ${className}`}
+        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 p-8 rounded-lg min-h-[200px] max-w-full shadow-lg ${className}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -74,7 +91,7 @@ export default function OptimizedImage({
   }
 
   return (
-    <div ref={imgRef} className={`relative overflow-hidden rounded-lg ${className}`}>
+    <div ref={imgRef} className={`relative overflow-hidden rounded-lg ${className || 'max-w-full shadow-lg'}`}>
       {/* 加载占位符 */}
       {!isLoaded && (
         <motion.div

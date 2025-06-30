@@ -39,7 +39,7 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <Navigation />
-          <main className="min-h-screen">
+          <main className="min-h-screen bg-cover bg-center bg-no-repeat">
             {children}
           </main>
           <footer className="bg-white/90 dark:bg-gray-900/90 border-t border-gray-200/20 dark:border-gray-700/20 text-gray-600 dark:text-gray-400 py-3">

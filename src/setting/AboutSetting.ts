@@ -1,10 +1,12 @@
-export const title = "关于我";
-export const BeforeAnimationText = "持续 ";
-export const AnimationText = "进步";
-export const avatar = "/avatar.jpg";
-export const name = "徐皓阳";
+export const title = "关于我"; //主标题
+export const BeforeAnimationText = "持续 "; //在动画字前面的字
+export const AnimationText = "进步"; //动画字
+export const avatar = "/avatar.jpg"; //头像，需要存放在public文件夹中
+export const isBorder = true; //控制头像边框是否显示
+export const name = "XHY"; //名字
 export const slogan =
-  "在技术的海洋中探索，在代码的世界里创造，用文字记录成长的足迹";
+  "在技术的海洋中探索，在代码的世界里创造，用文字记录成长的足迹"; //个人介绍
+//https://simpleicons.org 图标配置 图云
 const slugs = [
   "typescript",
   "javascript",
@@ -41,10 +43,10 @@ export const images = slugs.map(
 //   "https://images.unsplash.com/photo-1720048171230-c60d162f93a0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
 //   "/avatar.jpg",
 // ];
-export const aboutMeP1 = "天津理工大学计算机科学与技术专业就读，2027年毕业 ";
-export const aboutMeP2 = "热爱技术，热爱生活，希望自己能创造更多价值 ";
+export const aboutMeP1 = "天津理工大学计算机科学与技术专业就读，2027年毕业 "; //关于我页面第一段
+export const aboutMeP2 = "热爱技术，热爱生活，希望自己能创造更多价值 "; //关于我页面第一段
 export const mainContactMeDescription =
-  "如果你对我的文章感兴趣，或者想要交流技术话题，欢迎与我联系！";
-export const subContactMeDescription = "我会尽快回复你的消息 ✨";
-export const mail = "mailto:haoyang05.xu@gmail.com";
-export const github = "https://github.com/seasalt-haiyan";
+  "如果你对我的文章感兴趣，或者想要交流技术话题，欢迎与我联系！"; //联系我页面描述
+export const subContactMeDescription = "我会尽快回复你的消息 ✨"; //联系我页面补充描述
+export const mail = "mailto:haoyang05.xu@gmail.com"; //邮箱配置
+export const github = "https://github.com/seasalt-haiyan"; //github配置

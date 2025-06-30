@@ -69,75 +69,73 @@ interface BlogFrontMatter {
 }
 
 /**
+ * 递归查找指定 slug 对应的 .md 文件
+ * 
+ * @param dir - 要搜索的目录
+ * @param baseDir - 基础目录，用于计算相对路径
+ * @param targetSlug - 目标 slug
+ * @returns 找到的文件信息或 null
+ */
+function findMarkdownFileBySlug(dir: string, baseDir: string, targetSlug: string): {filePath: string, relativePath: string} | null {
+  try {
+    const items = fs.readdirSync(dir);
+    
+    for (const item of items) {
+      const itemPath = path.join(dir, item);
+      const stat = fs.statSync(itemPath);
+      
+      if (stat.isDirectory()) {
+        // 递归搜索子目录
+        const result = findMarkdownFileBySlug(itemPath, baseDir, targetSlug);
+        if (result) return result;
+      } else if (item.endsWith('.md')) {
+        // 检查这个文件是否匹配目标 slug
+        const relativePath = path.relative(baseDir, itemPath);
+        const fileSlug = relativePath.replace(/\.md$/, '').replace(/[\/\\]/g, '-');
+        
+        if (fileSlug === targetSlug) {
+          return {
+            filePath: itemPath,
+            relativePath
+          };
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error searching directory ${dir}:`, error);
+  }
+  
+  return null;
+}
+
+/**
  * 根据 slug 获取博客文章内容
  * 
- * 支持三种文件结构：
- * 1. 文件夹形式：/content/blogs/{slug}/index.md（支持 assets 资源文件夹）
- * 2. 文件夹形式：/content/blogs/{slug}/ 中的第一个 .md 文件
- * 3. 单文件形式：/content/blogs/{slug}.md（向后兼容）
+ * 支持深层嵌套的单文件模式：
+ * - 递归搜索 /content/blogs 目录下的所有 .md 文件
+ * - 支持任意深度的文件夹嵌套
+ * - 基于路径生成的 slug 进行匹配
+ * - 支持外部图片引用（相对路径和绝对路径）
  * 
  * 标题处理逻辑：
  * - 如果元数据中有 title，使用元数据中的 title
  * - 如果没有 title，使用文件名（去除 .md 扩展名）作为标题
  * 
- * @param slug - 博客文章的唯一标识符
+ * @param slug - 博客文章的唯一标识符（基于路径生成）
  * @returns Promise<BlogPost | null> - 返回博客文章数据或 null（如果文章不存在）
  */
 async function getBlogContent(slug: string): Promise<BlogPost | null> {
   try {
     const contentDir = path.join(process.cwd(), 'src/content/blogs');
     
-    let filePath: string;
-    let assetsPath: string | null = null;
-    let fileName: string = slug; // 默认使用 slug 作为文件名
+    // 查找匹配 slug 的 .md 文件
+    const fileInfo = findMarkdownFileBySlug(contentDir, contentDir, slug);
     
-    // 首先尝试文件夹形式
-    const folderPath = path.join(contentDir, slug);
-    
-    if (fs.existsSync(folderPath) && fs.statSync(folderPath).isDirectory()) {
-      // 检查是否有 index.md
-      const indexPath = path.join(folderPath, 'index.md');
-      
-      if (fs.existsSync(indexPath)) {
-        // 文件夹形式 - index.md
-        filePath = indexPath;
-        fileName = 'index';
-        assetsPath = path.join(folderPath, 'assets');
-      } else {
-        // 文件夹形式 - 查找第一个 .md 文件
-        try {
-          const files = fs.readdirSync(folderPath)
-            .filter(file => file.endsWith('.md'))
-            .sort(); // 按字母顺序排序，确保结果一致
-          
-          if (files.length > 0) {
-            const firstMdFile = files[0];
-            filePath = path.join(folderPath, firstMdFile);
-            fileName = path.basename(firstMdFile, '.md');
-            assetsPath = path.join(folderPath, 'assets');
-          } else {
-            // 文件夹中没有 .md 文件，尝试单文件形式
-            filePath = path.join(contentDir, `${slug}.md`);
-            if (!fs.existsSync(filePath)) {
-              return null;
-            }
-          }
-        } catch (readDirError) {
-          console.error('Error reading directory:', readDirError);
-          // 如果读取目录失败，尝试单文件形式
-          filePath = path.join(contentDir, `${slug}.md`);
-          if (!fs.existsSync(filePath)) {
-            return null;
-          }
-        }
-      }
-    } else {
-      // 兼容原有的 .md 文件形式
-      filePath = path.join(contentDir, `${slug}.md`);
-      if (!fs.existsSync(filePath)) {
-        return null;
-      }
+    if (!fileInfo) {
+      return null;
     }
+    
+    const { filePath } = fileInfo;
     
     // 读取文件内容，使用 UTF-8 编码处理中文
     const fileContent = fs.readFileSync(filePath, 'utf8');
@@ -146,20 +144,39 @@ async function getBlogContent(slug: string): Promise<BlogPost | null> {
     // 类型断言，确保 data 符合 BlogFrontMatter 接口
     const frontMatter = data as BlogFrontMatter;
     
-    // 如果有 assets 文件夹，处理图片路径
-    if (assetsPath && fs.existsSync(assetsPath)) {
-      // 将相对路径的图片替换为正确的路径
-      content = content.replace(
-        /!\[([^\]]*)\]\((?!http)([^)]+)\)/g,
-        (match, alt, src: string) => {
-          // 移除开头的 ./ 或 /
-          const cleanSrc: string = src.replace(/^\.?\//,  '');
-          return `![${alt}](/api/blog-assets/${slug}/${cleanSrc})`;
+    // 处理图片路径 - 支持相对路径和外部图片
+    const fileDir = path.dirname(filePath);
+    content = content.replace(
+      /!\[([^\]]*)\]\((?!https?:\/\/)([^)]+)\)/g,
+      (match, alt, src: string) => {
+        // 如果是相对路径，转换为 API 路径
+        if (src.startsWith('./') || src.startsWith('../') || !src.startsWith('/')) {
+          // 计算相对于文件的绝对路径
+          const absoluteSrc = path.resolve(fileDir, src);
+          const contentDir = path.join(process.cwd(), 'src/content');
+          
+          // 如果图片在 content 目录下，使用 API 路由
+          if (absoluteSrc.startsWith(contentDir)) {
+            const relativePath = path.relative(contentDir, absoluteSrc);
+            const apiPath = `/api/blog-images/${relativePath.replace(/\\/g, '/')}`;
+            return `![${alt}](${apiPath})`;
+          }
+          
+          // 如果图片在 public 目录下，使用直接路径
+          const publicDir = path.join(process.cwd(), 'public');
+          if (absoluteSrc.startsWith(publicDir)) {
+            const publicRelativePath = path.relative(publicDir, absoluteSrc);
+            return `![${alt}](/${publicRelativePath.replace(/\\/g, '/')})`;
+          }
         }
-      );
-    }
+        
+        // 保持原始路径（绝对路径或外部链接）
+        return match;
+      }
+    );
     
     // 标题处理：优先使用元数据中的 title，否则使用文件名
+    const fileName = path.basename(filePath, '.md');
     const title = frontMatter.title || fileName;
     
     return {
