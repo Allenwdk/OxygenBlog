@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { formatBlogDate } from '@/lib/utils';
 import ClientBlogsPage from './ClientBlogsPage';
 
 /**
@@ -31,6 +32,15 @@ interface BlogFrontMatter {
 
 /**
  * 获取所有博客文章
+ * 
+ * 支持三种文件结构：
+ * 1. 文件夹形式：/content/blogs/{slug}/index.md
+ * 2. 文件夹形式：/content/blogs/{slug}/ 中的第一个 .md 文件
+ * 3. 单文件形式：/content/blogs/{slug}.md
+ * 
+ * 标题处理逻辑与详情页面保持一致：
+ * - 如果元数据中有 title，使用元数据中的 title
+ * - 如果没有 title，使用文件名（去除 .md 扩展名）作为标题
  */
 function getAllBlogs(): BlogPost[] {
   try {
@@ -48,27 +58,54 @@ function getAllBlogs(): BlogPost[] {
       const stat = fs.statSync(itemPath);
       
       if (stat.isDirectory()) {
-        // 文件夹形式：查找 index.md
+        // 文件夹形式：优先查找 index.md，否则查找第一个 .md 文件
         const indexPath = path.join(itemPath, 'index.md');
+        let filePath: string;
+        let fileName: string = item; // 默认使用文件夹名
+        
         if (fs.existsSync(indexPath)) {
+          filePath = indexPath;
+          fileName = 'index';
+        } else {
+          // 查找第一个 .md 文件
           try {
-            const fileContent = fs.readFileSync(indexPath, 'utf8');
-            const { data } = matter(fileContent);
-            const frontMatter = data as BlogFrontMatter;
+            const files = fs.readdirSync(itemPath)
+              .filter(file => file.endsWith('.md'))
+              .sort();
             
-            blogPosts.push({
-              id: item,
-              title: frontMatter.title || '无标题',
-              excerpt: frontMatter.excerpt || '',
-              date: frontMatter.date || '2024-01-01',
-              category: frontMatter.category || '其他',
-              tags: frontMatter.tags || [],
-              slug: item,
-              readTime: frontMatter.readTime || 5
-            });
-          } catch (error) {
-            console.error(`Error reading blog folder ${item}:`, error);
+            if (files.length > 0) {
+              const firstMdFile = files[0];
+              filePath = path.join(itemPath, firstMdFile);
+              fileName = path.basename(firstMdFile, '.md');
+            } else {
+              return; // 跳过没有 .md 文件的文件夹
+            }
+          } catch (readDirError) {
+            console.error(`Error reading directory ${item}:`, readDirError);
+            return;
           }
+        }
+        
+        try {
+          const fileContent = fs.readFileSync(filePath, 'utf8');
+          const { data } = matter(fileContent);
+          const frontMatter = data as BlogFrontMatter;
+          
+          // 标题处理：优先使用元数据中的 title，否则使用文件名
+          const title = frontMatter.title || fileName;
+          
+          blogPosts.push({
+            id: item,
+            title: title,
+            excerpt: frontMatter.excerpt || '',
+            date: formatBlogDate(frontMatter.date),
+            category: frontMatter.category || '其他',
+            tags: frontMatter.tags || [],
+            slug: item,
+            readTime: frontMatter.readTime || 5
+          });
+        } catch (error) {
+          console.error(`Error reading blog folder ${item}:`, error);
         }
       } else if (item.endsWith('.md')) {
         // 兼容原有的 .md 文件形式
@@ -79,11 +116,14 @@ function getAllBlogs(): BlogPost[] {
           
           const slug = item.replace('.md', '');
           
+          // 标题处理：优先使用元数据中的 title，否则使用文件名
+          const title = frontMatter.title || slug;
+          
           blogPosts.push({
             id: slug,
-            title: frontMatter.title || '无标题',
+            title: title,
             excerpt: frontMatter.excerpt || '',
-            date: frontMatter.date || '2024-01-01',
+            date: formatBlogDate(frontMatter.date),
             category: frontMatter.category || '其他',
             tags: frontMatter.tags || [],
             slug: slug,

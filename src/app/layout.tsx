@@ -3,7 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 import { beianhao, ICP, year, name, aWord } from "@/setting/FooterSetting";
+import { webTitle, webDescription } from "@/setting/WebSetting";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "我的博客平台",
-  description: "这里是描述",
+  title: webTitle,
+  description: webDescription,
 };
 
 export default function RootLayout({
@@ -45,6 +47,9 @@ export default function RootLayout({
               <p>{beianhao} {ICP} &copy;  {year} {name}  ·  {aWord}</p>
             </div>
           </footer>
+          
+          {/* 性能监控组件 */}
+          <PerformanceMonitor position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>

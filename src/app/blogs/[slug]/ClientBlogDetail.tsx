@@ -3,18 +3,164 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import remarkBreaks from 'remark-breaks';
-import remarkEmoji from 'remark-emoji';
-import rehypeKatex from 'rehype-katex';
-import rehypeRaw from 'rehype-raw';
-import rehypeSlug from 'rehype-slug';
+import LazyMarkdown from '@/components/LazyMarkdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ClipboardIcon } from '@heroicons/react/24/outline';
+import CopyrightNotice from '@/components/CopyrightNotice';
+import OptimizedImage from '@/components/OptimizedImage';
 import 'katex/dist/katex.min.css';
+
+/**
+ * 标准化编程语言名称，解决大小写敏感问题
+ * 
+ * @param language - 原始语言名称
+ * @returns 标准化后的语言名称
+ */
+const normalizeLanguage = (language: string): string => {
+  const languageMap: Record<string, string> = {
+    // JavaScript 相关
+    'javascript': 'javascript',
+    'js': 'javascript',
+    'jsx': 'jsx',
+    'typescript': 'typescript',
+    'ts': 'typescript',
+    'tsx': 'tsx',
+    
+    // Python 相关
+    'python': 'python',
+    'py': 'python',
+    'python3': 'python',
+    
+    // Java 相关
+    'java': 'java',
+    
+    // C/C++ 相关
+    'c': 'c',
+    'cpp': 'cpp',
+    'c++': 'cpp',
+    'cxx': 'cpp',
+    
+    // Web 相关
+    'html': 'html',
+    'css': 'css',
+    'scss': 'scss',
+    'sass': 'sass',
+    'less': 'less',
+    
+    // Shell 相关
+    'bash': 'bash',
+    'sh': 'bash',
+    'shell': 'bash',
+    'zsh': 'bash',
+    
+    // 数据格式
+    'json': 'json',
+    'xml': 'xml',
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    'toml': 'toml',
+    
+    // 数据库
+    'sql': 'sql',
+    'mysql': 'sql',
+    'postgresql': 'sql',
+    'sqlite': 'sql',
+    
+    // 其他常用语言
+    'go': 'go',
+    'golang': 'go',
+    'rust': 'rust',
+    'php': 'php',
+    'ruby': 'ruby',
+    'swift': 'swift',
+    'kotlin': 'kotlin',
+    'dart': 'dart',
+    'r': 'r',
+    'matlab': 'matlab',
+    'perl': 'perl',
+    'lua': 'lua',
+    'scala': 'scala',
+    'clojure': 'clojure',
+    'haskell': 'haskell',
+    'elixir': 'elixir',
+    'erlang': 'erlang',
+    
+    // 标记语言
+    'markdown': 'markdown',
+    'md': 'markdown',
+    'latex': 'latex',
+    'tex': 'latex',
+    
+    // 配置文件
+    'dockerfile': 'dockerfile',
+    'docker': 'dockerfile',
+    'makefile': 'makefile',
+    'make': 'makefile',
+    
+    // 其他
+    'text': 'text',
+    'txt': 'text',
+    'plain': 'text',
+    'plaintext': 'text'
+  };
+  
+  const normalizedInput = language.toLowerCase().trim();
+   return languageMap[normalizedInput] || normalizedInput;
+ };
+
+/**
+ * 获取语言的友好显示名称
+ * 
+ * @param language - 标准化后的语言名称
+ * @returns 用于显示的友好名称
+ */
+const getLanguageDisplayName = (language: string): string => {
+  const displayNameMap: Record<string, string> = {
+    'javascript': 'JavaScript',
+    'typescript': 'TypeScript',
+    'jsx': 'JSX',
+    'tsx': 'TSX',
+    'python': 'Python',
+    'java': 'Java',
+    'cpp': 'C++',
+    'c': 'C',
+    'html': 'HTML',
+    'css': 'CSS',
+    'scss': 'SCSS',
+    'sass': 'Sass',
+    'less': 'Less',
+    'bash': 'Bash',
+    'json': 'JSON',
+    'xml': 'XML',
+    'yaml': 'YAML',
+    'toml': 'TOML',
+    'sql': 'SQL',
+    'go': 'Go',
+    'rust': 'Rust',
+    'php': 'PHP',
+    'ruby': 'Ruby',
+    'swift': 'Swift',
+    'kotlin': 'Kotlin',
+    'dart': 'Dart',
+    'r': 'R',
+    'matlab': 'MATLAB',
+    'perl': 'Perl',
+    'lua': 'Lua',
+    'scala': 'Scala',
+    'clojure': 'Clojure',
+    'haskell': 'Haskell',
+    'elixir': 'Elixir',
+    'erlang': 'Erlang',
+    'markdown': 'Markdown',
+    'latex': 'LaTeX',
+    'dockerfile': 'Dockerfile',
+    'makefile': 'Makefile',
+    'text': 'Text'
+  };
+  
+  return displayNameMap[language] || language.charAt(0).toUpperCase() + language.slice(1);
+ };
 
 interface ComponentProps {
   children?: React.ReactNode;
@@ -29,6 +175,8 @@ interface BlogPost {
   readTime: number;
   excerpt: string;
   content: string;
+  slug: string;
+  reference?: Array<{description: string; link: string}>;
 }
 
 interface ClientBlogDetailProps {
@@ -111,18 +259,8 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
           >
             <div className="p-8">
               <div className="prose prose-lg max-w-none dark:prose-invert">
-                <ReactMarkdown
-                  remarkPlugins={[
-                    remarkGfm,
-                    remarkMath,
-                    remarkBreaks,
-                    remarkEmoji
-                  ]}
-                  rehypePlugins={[
-                    rehypeKatex,
-                    rehypeRaw,
-                    rehypeSlug
-                  ]}
+                <LazyMarkdown
+                  content={blog.content}
                   components={{
                      p({ children, ...props }: ComponentProps) {
                        return (
@@ -156,7 +294,8 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
 
                        const textContent = getTextContent(children);
                        const match = /language-(\w+)/.exec(className || '');
-                       const language = match ? match[1] : 'text';
+                       const rawLanguage = match ? match[1] : 'text';
+                       const language = normalizeLanguage(rawLanguage);
                        const codeContent = textContent.replace(/\n$/, '');
 
                        // 智能判断行内代码：
@@ -183,9 +322,9 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                        return (
                          <div className="relative">
                            {/* 代码块头部 - 包含语言标签和复制按钮 */}
-                           <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg border-b border-gray-700">
+                           <div className="flex justify-between items-center bg-gray-650 px-4 py-2 rounded-t-lg border-b border-gray-700">
                              <span className="text-xs text-gray-300 font-medium select-none">
-                               {language || 'text'}
+                               {getLanguageDisplayName(language)}
                              </span>
                              <button
                                onClick={() => navigator.clipboard.writeText(codeContent)}
@@ -346,14 +485,35 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                            {children}
                          </a>
                        );
+                     },
+                     img({ src, alt, title }: { src?: string; alt?: string; title?: string }) {
+                       if (!src) return null;
+                       
+                       return (
+                         <div className="my-6 flex justify-center">
+                           <OptimizedImage
+                             src={src}
+                             alt={alt || ''}
+                             title={title}
+                             className="max-w-full shadow-lg"
+                             width={800}
+                             height={600}
+                           />
+                         </div>
+                       );
                      }
-                  }}
-                >
-                  {blog.content}
-                </ReactMarkdown>
+                    }}
+                />
               </div>
             </div>
           </motion.article>
+          
+          <CopyrightNotice
+            title={blog.title}
+            publishDate={blog.date}
+            slug={blog.slug}
+            reference={blog.reference}
+          />
           
           {/* 文章底部导航 */}
           <motion.div 

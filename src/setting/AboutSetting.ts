@@ -24,9 +24,23 @@ const slugs = [
   "github",
   "gitlab",
 ];
+/*
+  关于技术栈图云配置说明
+1. 可以使用 https://simpleicons.org 提供的图标，图标名称需要与 slugs 中的名称一致
+2. 如果想上传自定义图片，将image配置成自定义图片的url数组
+*/
+
+//simpleicons版本
 export const images = slugs.map(
   (slug) => `https://cdn.simpleicons.org/${slug}/${slug}`
 );
+
+//自定义图片版本
+
+// export const images = [
+//   "https://images.unsplash.com/photo-1720048171230-c60d162f93a0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//   "/avatar.jpg",
+// ];
 export const aboutMeP1 = "天津理工大学计算机科学与技术专业就读，2027年毕业 ";
 export const aboutMeP2 = "热爱技术，热爱生活，希望自己能创造更多价值 ";
 export const mainContactMeDescription =
