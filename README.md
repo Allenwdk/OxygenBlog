@@ -1,5 +1,5 @@
 # Oxyegn Blog Platform
-本项目是一个基于 NEXT.js 制作的一个美观、配置方便、简洁的博客平台，目前为 V1.2.0 版本，后续会根据需求进行更新。
+本项目是一个基于 NEXT.js 制作的一个美观、配置方便、简洁的博客平台，目前为 V1.2 版本，后续会根据需求进行更新。
 
 ## 功能
 - 支持 Markdown 格式的博客文章
@@ -7,8 +7,10 @@
 - 支持自定义导航栏、侧边栏、页脚等
 - 支持深色模式
 
-## 如何配置 (本地)
+## 如何启动本地调试服务器
+
 **node版本: >= 22**
+
 1. git clone 到本地
 2. 安装依赖
 ```bash
@@ -18,6 +20,7 @@ yarn install
 # or
 pnpm install
 ```
+
 3. 运行项目
 ```bash
 npm run dev
@@ -60,6 +63,16 @@ NavigationSetting //导航栏配置
 WebSetting.ts //网站配置
 ```
 每一个配置文件都为您写好了注释
+
+## 如何部署
+- 支持一键部署到 Vercel
+- 支持一键部署到 GitHub Pages
+  1. Fork本仓库
+  2. 在Setting里面打开Page，并且选择Github Action 方式配置
+  3. 打开 Action ，选择 Deploy to Github Page， 点击 Run WorkFlow
+  4. 等待部署完毕，点击Github域名进入您的网站
+
+
 ## 更新日志
 
 V 1.0.0 2025.6.29
@@ -87,6 +100,10 @@ V 1.2.1 2025.7.1
 
 V 1.2.2 2025.7.1
 1. 修复了静态页面样式丢失的bug
+2. 现在已经支持GitHub Action 一键部署到Github Page！
+
+V 1.2.3 20205.7.1
+1. 修复了Github Action部署时没有仓库名时候的bug
 
 下版本新功能预告：
 - 主题色配置
