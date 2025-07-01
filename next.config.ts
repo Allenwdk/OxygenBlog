@@ -8,20 +8,35 @@ const nextConfig = {
     // 1. 环境变量 GITHUB_REPOSITORY (格式: owner/repo)
     // 2. 环境变量 REPO_NAME (直接设置仓库名)
     // 3. 默认从 package.json 的 name 字段获取
-    basePath: process.env.GITHUB_ACTIONS
-      ? `/${
-          process.env.REPO_NAME ||
-          process.env.GITHUB_REPOSITORY?.split("/")[1] ||
-          "blog-platform"
-        }`
-      : "",
-    assetPrefix: process.env.GITHUB_ACTIONS
-      ? `/${
-          process.env.REPO_NAME ||
-          process.env.GITHUB_REPOSITORY?.split("/")[1] ||
-          "blog-platform"
-        }/`
-      : undefined,
+    // 特殊处理：如果是 username.github.io 仓库，不设置 basePath
+    basePath: (() => {
+      if (!process.env.GITHUB_ACTIONS) return "";
+      
+      const repoName = process.env.REPO_NAME || 
+                      process.env.GITHUB_REPOSITORY?.split("/")[1] || 
+                      "blog-platform";
+      
+      // 如果仓库名以 .github.io 结尾，说明是用户主页仓库，不需要 basePath
+      if (repoName.endsWith(".github.io")) {
+        return "";
+      }
+      
+      return `/${repoName}`;
+    })(),
+    assetPrefix: (() => {
+      if (!process.env.GITHUB_ACTIONS) return undefined;
+      
+      const repoName = process.env.REPO_NAME || 
+                      process.env.GITHUB_REPOSITORY?.split("/")[1] || 
+                      "blog-platform";
+      
+      // 如果仓库名以 .github.io 结尾，说明是用户主页仓库，不需要 assetPrefix
+      if (repoName.endsWith(".github.io")) {
+        return undefined;
+      }
+      
+      return `/${repoName}/`;
+    })(),
   }),
   images: {
     // 允许的外部图片域名
