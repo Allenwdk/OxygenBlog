@@ -64,7 +64,7 @@ function BlogItem({ index, style, data }: BlogItemProps) {
           </div>
 
           {/* 标题 */}
-          <Link href={`/blogs/${blog.slug}`}>
+          <Link href={`/blogs/${encodeURIComponent(blog.slug)}`}>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2">
               {blog.title}
             </h2>
@@ -82,7 +82,7 @@ function BlogItem({ index, style, data }: BlogItemProps) {
               <span>📖 {blog.readTime}</span>
             </div>
             <Link
-              href={`/blogs/${blog.slug}`}
+              href={`/blogs/${encodeURIComponent(blog.slug)}`}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors"
             >
               阅读更多 →

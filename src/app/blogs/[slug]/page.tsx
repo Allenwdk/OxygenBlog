@@ -3,8 +3,8 @@ import path from 'path';
 import matter from 'gray-matter';
 import { ClientBlogDetail } from '@/app/blogs//[slug]/ClientBlogDetail';
 import 'highlight.js/styles/github-dark.css';
-import Link from 'next/link';
 import { formatBlogDate } from '@/lib/utils';
+import { notFound } from 'next/navigation';
 
 /**
  * 博客详情页面的 Props 接口
@@ -144,30 +144,29 @@ async function getBlogContent(slug: string): Promise<BlogPost | null> {
     // 类型断言，确保 data 符合 BlogFrontMatter 接口
     const frontMatter = data as BlogFrontMatter;
     
-    // 处理图片路径 - 支持相对路径和外部图片
-    const fileDir = path.dirname(filePath);
+    // 处理图片路径 - 将所有相对路径图片指向 public 目录
     content = content.replace(
       /!\[([^\]]*)\]\((?!https?:\/\/)([^)]+)\)/g,
       (match, alt, src: string) => {
-        // 如果是相对路径，转换为 API 路径
-        if (src.startsWith('./') || src.startsWith('../') || !src.startsWith('/')) {
-          // 计算相对于文件的绝对路径
-          const absoluteSrc = path.resolve(fileDir, src);
-          const contentDir = path.join(process.cwd(), 'src/content');
+        // 如果是相对路径，转换为 public 目录路径
+        if (src.startsWith('./') || src.startsWith('../') || (!src.startsWith('/') && !src.startsWith('http'))) {
+          // 处理相对路径，统一指向 public 目录
+          let publicPath = src;
           
-          // 如果图片在 content 目录下，使用 API 路由
-          if (absoluteSrc.startsWith(contentDir)) {
-            const relativePath = path.relative(contentDir, absoluteSrc);
-            const apiPath = `/api/blog-images/${relativePath.replace(/\\/g, '/')}`;
-            return `![${alt}](${apiPath})`;
+          // 移除相对路径前缀
+          if (src.startsWith('./')) {
+            publicPath = src.substring(2);
+          } else if (src.startsWith('../')) {
+            // 处理 ../assets/example.svg 这样的路径
+            publicPath = src.replace(/^\.\.\//, '');
           }
           
-          // 如果图片在 public 目录下，使用直接路径
-          const publicDir = path.join(process.cwd(), 'public');
-          if (absoluteSrc.startsWith(publicDir)) {
-            const publicRelativePath = path.relative(publicDir, absoluteSrc);
-            return `![${alt}](/${publicRelativePath.replace(/\\/g, '/')})`;
+          // 确保路径以 / 开头
+          if (!publicPath.startsWith('/')) {
+            publicPath = '/' + publicPath;
           }
+          
+          return `![${alt}](${publicPath})`;
         }
         
         // 保持原始路径（绝对路径或外部链接）
@@ -209,25 +208,103 @@ async function getBlogContent(slug: string): Promise<BlogPost | null> {
  */
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   // 在服务端获取博客内容
-  const resolvedParams = await params;
-  const blogData = await getBlogContent(resolvedParams.slug);
+   const resolvedParams = await params;
+   
+   // Next.js 已经自动解码了URL参数，但为了安全起见，我们尝试解码
+   let decodedSlug: string;
+   try {
+     // 检查是否需要解码（如果包含%字符，说明可能是编码的）
+     if (resolvedParams.slug.includes('%')) {
+       decodedSlug = decodeURIComponent(resolvedParams.slug);
+     } else {
+       decodedSlug = resolvedParams.slug;
+     }
+   } catch {
+     decodedSlug = resolvedParams.slug;
+   }
+  
+  const blogData = await getBlogContent(decodedSlug);
   
   if (!blogData) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">文章未找到</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">抱歉，您访问的文章不存在。</p>
-          <Link
-            href="/blogs" 
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            返回博客列表
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
   
   return <ClientBlogDetail blog={blogData} />;
+}
+
+// 禁用动态参数，只允许预生成的路由
+export const dynamicParams = false;
+
+/**
+ * 生成静态参数函数
+ * 用于静态导出时预生成所有博客文章的路由参数
+ * 
+ * @returns 包含所有博客文章 slug 的参数数组
+ */
+export async function generateStaticParams() {
+  try {
+    const contentDir = path.join(process.cwd(), 'src/content/blogs');
+    
+    if (!fs.existsSync(contentDir)) {
+      return [];
+    }
+    
+    // 递归扫描所有 .md 文件
+    const markdownFiles = scanMarkdownFiles(contentDir, contentDir);
+    
+    return markdownFiles.map(({ slug }) => ({
+      slug: slug  // 不需要在这里编码，Next.js会自动处理
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
+}
+
+/**
+ * 递归扫描目录中的 Markdown 文件
+ * 
+ * @param dir - 要扫描的目录路径
+ * @param baseDir - 基础目录路径，用于计算相对路径
+ * @returns 包含文件路径、相对路径和 slug 的对象数组
+ */
+function scanMarkdownFiles(dir: string, baseDir: string): Array<{
+  filePath: string;
+  relativePath: string;
+  slug: string;
+}> {
+  const results: Array<{
+    filePath: string;
+    relativePath: string;
+    slug: string;
+  }> = [];
+  
+  try {
+    const items = fs.readdirSync(dir);
+    
+    items.forEach(item => {
+      const itemPath = path.join(dir, item);
+      const stat = fs.statSync(itemPath);
+      
+      if (stat.isDirectory()) {
+        // 递归扫描子目录
+        results.push(...scanMarkdownFiles(itemPath, baseDir));
+      } else if (item.endsWith('.md')) {
+        // 找到 .md 文件
+        const relativePath = path.relative(baseDir, itemPath);
+        // 生成 slug：使用相对路径，去除 .md 扩展名，将路径分隔符替换为连字符
+        const slug = relativePath.replace(/\.md$/, '').replace(/[\/\\]/g, '-');
+        
+        results.push({
+          filePath: itemPath,
+          relativePath,
+          slug
+        });
+      }
+    });
+  } catch (error) {
+    console.error(`Error scanning directory ${dir}:`, error);
+  }
+  
+  return results;
 }

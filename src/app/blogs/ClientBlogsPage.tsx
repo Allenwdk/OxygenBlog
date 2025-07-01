@@ -236,7 +236,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                   }}
                   className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
                 >
-                  <Link href={`/blogs/${post.slug}`}>
+                  <Link href={`/blogs/${encodeURIComponent(post.slug)}`}>
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm font-medium">
