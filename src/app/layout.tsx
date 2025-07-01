@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import PerformanceMonitor from "@/components/PerformanceMonitor";
 import { beianhao, ICP, year, name, aWord } from "@/setting/FooterSetting";
 import { webTitle, webDescription } from "@/setting/WebSetting";
 
@@ -49,7 +48,7 @@ export default function RootLayout({
           </footer>
           
           {/* 性能监控组件 */}
-          <PerformanceMonitor position="bottom-right" />
+          {/* <PerformanceMonitor position="bottom-right" /> */}
         </ThemeProvider>
       </body>
     </html>
