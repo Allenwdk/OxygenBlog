@@ -1,14 +1,27 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+const nextConfig = {
   // 只在构建时启用静态导出，开发时禁用以避免 generateStaticParams 错误
   ...(process.env.NODE_ENV === "production" && { output: "export" }),
   trailingSlash: true,
   // 静态导出时的资源前缀配置
   ...(process.env.NODE_ENV === "production" && {
-    // 移除 assetPrefix，使用默认的相对路径
-    // assetPrefix: './',
-    basePath: "",
+    // 动态获取仓库名，支持多种方式：
+    // 1. 环境变量 GITHUB_REPOSITORY (格式: owner/repo)
+    // 2. 环境变量 REPO_NAME (直接设置仓库名)
+    // 3. 默认从 package.json 的 name 字段获取
+    basePath: process.env.GITHUB_ACTIONS
+      ? `/${
+          process.env.REPO_NAME ||
+          process.env.GITHUB_REPOSITORY?.split("/")[1] ||
+          "blog-platform"
+        }`
+      : "",
+    assetPrefix: process.env.GITHUB_ACTIONS
+      ? `/${
+          process.env.REPO_NAME ||
+          process.env.GITHUB_REPOSITORY?.split("/")[1] ||
+          "blog-platform"
+        }/`
+      : undefined,
   }),
   images: {
     // 允许的外部图片域名
