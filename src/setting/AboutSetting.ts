@@ -8,17 +8,11 @@ export const AnimationText = "进步"; //动画字
 const AVATAR_FILENAME = "avatar.jpg";
 
 /**
- * 获取头像完整路径，正确处理basePath
+ * 获取头像完整路径
+ * Next.js的basePath配置会自动处理路径前缀，这里只返回标准的绝对路径
  * @returns 头像的完整路径
  */
 export const getAvatarPath = (): string => {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-  // 确保路径格式正确，避免重复斜杠
-  if (basePath) {
-    // 移除basePath末尾的斜杠（如果有），然后添加文件名
-    const cleanBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-    return `${cleanBasePath}/${AVATAR_FILENAME}`;
-  }
   return `/${AVATAR_FILENAME}`;
 };
 
