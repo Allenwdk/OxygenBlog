@@ -108,6 +108,10 @@ V 1.2.3 2025.7.1
 
 V 1.2.4 2025.7.4
 1. 修复了非Github根域名部署的情况下头像丢失的问题
+2. 添加basePath支持以适配GitHub Pages部署
+3. 添加环境变量NEXT_PUBLIC_BASE_PATH配置，用于处理GitHub Pages部署时的路径问题
+4. 修改头像和图片组件以自动处理basePath
+5. 优化CI工作流触发条件
 
 
 下版本新功能预告：

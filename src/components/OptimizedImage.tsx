@@ -4,6 +4,41 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 
+/**
+ * 判断是否为外部图片链接
+ */
+function isExternalImage(src: string): boolean {
+  return src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//');
+}
+
+/**
+ * 处理图片路径，添加basePath支持
+ */
+function processImagePath(src: string): string {
+  // 如果是外部链接，直接返回
+  if (isExternalImage(src)) {
+    return src;
+  }
+  
+  // 获取basePath
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  
+  // 如果是相对路径（如 ./assets/example.svg 或 ../assets/example.svg），转换为绝对路径
+  if (src.startsWith('./') || src.startsWith('../')) {
+    // 移除相对路径前缀，转换为从public目录开始的路径
+    const cleanPath = src.replace(/^\.\.?\//, '');
+    return `${basePath}/${cleanPath}`;
+  }
+  
+  // 如果已经是绝对路径（以/开头），添加basePath
+  if (src.startsWith('/')) {
+    return `${basePath}${src}`;
+  }
+  
+  // 其他情况，假设是相对于public目录的路径
+  return `${basePath}/${src}`;
+}
+
 interface OptimizedImageProps {
   src: string;
   alt: string;
@@ -59,7 +94,9 @@ export default function OptimizedImage({
     return () => observer.disconnect();
   }, [priority]);
 
-  const isExternal = src.startsWith('http');
+  // 处理图片路径
+  const processedSrc = processImagePath(src);
+  const isExternal = isExternalImage(src);
 
   // 服务端渲染时返回简单占位符，避免水合不匹配
   if (!isMounted) {
@@ -129,7 +166,7 @@ export default function OptimizedImage({
         >
           {isExternal ? (
             <img
-              src={src}
+              src={processedSrc}
               alt={alt}
               title={title}
               loading={priority ? 'eager' : 'lazy'}
@@ -141,7 +178,7 @@ export default function OptimizedImage({
             />
           ) : (
             <Image
-              src={src}
+              src={processedSrc}
               alt={alt}
               title={title}
               width={width}

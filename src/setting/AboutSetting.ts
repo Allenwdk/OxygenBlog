@@ -1,7 +1,19 @@
 export const title = "关于我"; //主标题
 export const BeforeAnimationText = "持续 "; //在动画字前面的字
 export const AnimationText = "进步"; //动画字
-export const avatar = "/avatar.jpg"; //头像，需要存放在public文件夹中
+/**
+ * 头像配置，自动处理basePath
+ * 需要存放在public文件夹中
+ */
+export const avatar = (() => {
+  // 在浏览器环境中获取basePath
+  if (typeof window !== 'undefined') {
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    return `${basePath}/avatar.jpg`;
+  }
+  // 服务端渲染时的默认路径
+  return '/avatar.jpg';
+})();
 export const isBorder = true; //控制头像边框是否显示
 export const name = "XHY"; //名字
 export const slogan =
