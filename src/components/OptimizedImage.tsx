@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 
@@ -64,6 +64,10 @@ export default function OptimizedImage({
   const [isMounted, setIsMounted] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
+  // 使用 useMemo 缓存处理后的图片路径，避免重复计算
+  const processedSrc = useMemo(() => processImagePath(src), [src]);
+  const isExternal = useMemo(() => isExternalImage(src), [src]);
+
   // 确保组件已挂载，避免水合不匹配
   useEffect(() => {
     setIsMounted(true);
@@ -93,10 +97,6 @@ export default function OptimizedImage({
 
     return () => observer.disconnect();
   }, [priority]);
-
-  // 处理图片路径
-  const processedSrc = processImagePath(src);
-  const isExternal = isExternalImage(src);
 
   // 服务端渲染时返回简单占位符，避免水合不匹配
   if (!isMounted) {
