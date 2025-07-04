@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useMotionTemplate, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import {avatar} from '@/setting/AboutSetting'
+import Image from 'next/image'
 
 
 export const EvervaultCard = ({
@@ -51,7 +52,14 @@ export const EvervaultCard = ({
         <div className="relative z-10 flex items-center justify-center">
           <div className="relative h-44 w-44  rounded-full flex items-center justify-center text-white font-bold text-4xl">
             <div className="absolute w-full h-full bg-transparent dark:bg-transparent blur-sm rounded-full overflow-hidden" />
-            <img src={avatar} className="w-full rounded-full" />
+            <Image 
+              src={avatar} 
+              alt="Avatar" 
+              width={176} 
+              height={176} 
+              className="w-full rounded-full" 
+              priority={true}
+            />
           </div>
         </div>
       </div>

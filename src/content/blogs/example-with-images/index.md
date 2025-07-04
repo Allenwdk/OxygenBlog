@@ -188,7 +188,7 @@ $$F(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i\omega t} dt$$
 - [React 官方文档](https://react.dev/)
 - [Next.js 文档](https://nextjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/)
-- ![博客图片演示](../assets/example.svg)
+- ![博客图片演示](/assets/example.svg)
 
 ## 分隔线
 
