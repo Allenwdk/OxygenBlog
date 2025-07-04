@@ -18,7 +18,7 @@ readTime: 6
 简洁的设计能够减少用户的认知负担，让用户更容易理解和使用产品。
 
 
-![设计示例](./assets/example.svg)
+![设计示例](/assets/example.svg)
 ![图床图片](http://qiniu.yj-dis.top/image/20250615230516.png)
 
 
