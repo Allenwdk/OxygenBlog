@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 
@@ -63,10 +63,20 @@ export default function OptimizedImage({
   const [isInView, setIsInView] = useState(priority); // 优先级图片默认可见
   const [isMounted, setIsMounted] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
+  
+  // 防止重复请求的状态管理
+  const loadingStateRef = useRef<'idle' | 'loading' | 'loaded' | 'error'>('idle');
 
-  // 使用 useMemo 缓存处理后的图片路径，避免重复计算
+  // 使用 useMemo 缓存处理后的图片路径和外部链接判断，避免重复计算
   const processedSrc = useMemo(() => processImagePath(src), [src]);
   const isExternal = useMemo(() => isExternalImage(src), [src]);
+  
+  // 重置加载状态当图片源改变时
+  useEffect(() => {
+    loadingStateRef.current = 'idle';
+    setIsLoaded(false);
+    setHasError(false);
+  }, [processedSrc]);
 
   // 确保组件已挂载，避免水合不匹配
   useEffect(() => {
@@ -163,6 +173,11 @@ export default function OptimizedImage({
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
           transition={{ duration: 0.5 }}
+          onAnimationStart={() => {
+            if (loadingStateRef.current === 'idle') {
+              loadingStateRef.current = 'loading';
+            }
+          }}
         >
           {isExternal ? (
             <img
@@ -172,8 +187,18 @@ export default function OptimizedImage({
               loading={priority ? 'eager' : 'lazy'}
               className="w-full h-auto object-contain"
               style={{ maxHeight: '600px' }}
-              onLoad={() => setIsLoaded(true)}
-              onError={() => setHasError(true)}
+              onLoad={() => {
+                if (loadingStateRef.current === 'idle' || loadingStateRef.current === 'loading') {
+                  loadingStateRef.current = 'loaded';
+                  setIsLoaded(true);
+                }
+              }}
+              onError={() => {
+                if (loadingStateRef.current === 'idle' || loadingStateRef.current === 'loading') {
+                  loadingStateRef.current = 'error';
+                  setHasError(true);
+                }
+              }}
               decoding="async"
             />
           ) : (
@@ -189,8 +214,18 @@ export default function OptimizedImage({
               priority={priority}
               placeholder="blur"
               blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-              onLoad={() => setIsLoaded(true)}
-              onError={() => setHasError(true)}
+              onLoad={() => {
+                if (loadingStateRef.current === 'idle' || loadingStateRef.current === 'loading') {
+                  loadingStateRef.current = 'loaded';
+                  setIsLoaded(true);
+                }
+              }}
+              onError={() => {
+                if (loadingStateRef.current === 'idle' || loadingStateRef.current === 'loading') {
+                  loadingStateRef.current = 'error';
+                  setHasError(true);
+                }
+              }}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
             />
           )}

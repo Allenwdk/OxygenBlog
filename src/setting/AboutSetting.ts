@@ -5,11 +5,25 @@ export const AnimationText = "进步"; //动画字
  * 头像配置，自动处理basePath
  * 需要存放在public文件夹中
  */
-const avatar = "/avatar.jpg";
-export const getAvatarPath = () => {
+const AVATAR_FILENAME = "avatar.jpg";
+
+/**
+ * 获取头像完整路径，正确处理basePath
+ * @returns 头像的完整路径
+ */
+export const getAvatarPath = (): string => {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-  return `${basePath}${avatar}`;
+  // 确保路径格式正确，避免重复斜杠
+  if (basePath) {
+    // 移除basePath末尾的斜杠（如果有），然后添加文件名
+    const cleanBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+    return `${cleanBasePath}/${AVATAR_FILENAME}`;
+  }
+  return `/${AVATAR_FILENAME}`;
 };
+
+// 向后兼容的导出，建议使用 getAvatarPath() 函数
+export const avatar = getAvatarPath();
 
 export const isBorder = true; //控制头像边框是否显示
 export const name = "XHY"; //名字
