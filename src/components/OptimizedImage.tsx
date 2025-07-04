@@ -86,8 +86,12 @@ export default function OptimizedImage({
 
   // 使用 Intersection Observer 实现懒加载
   useEffect(() => {
-    if (!imgRef.current || priority) {
-      setIsInView(true);
+    // 如果是优先级图片，直接返回，不需要观察器
+    if (priority) {
+      return;
+    }
+
+    if (!imgRef.current) {
       return;
     }
 
@@ -174,11 +178,6 @@ export default function OptimizedImage({
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
           transition={{ duration: 0.5 }}
-          onAnimationStart={() => {
-            if (loadingStateRef.current === 'idle') {
-              loadingStateRef.current = 'loading';
-            }
-          }}
         >
           {isExternal ? (
             <img
@@ -198,6 +197,11 @@ export default function OptimizedImage({
                 if (loadingStateRef.current === 'idle' || loadingStateRef.current === 'loading') {
                   loadingStateRef.current = 'error';
                   setHasError(true);
+                }
+              }}
+              onLoadStart={() => {
+                if (loadingStateRef.current === 'idle') {
+                  loadingStateRef.current = 'loading';
                 }
               }}
               decoding="async"
@@ -225,6 +229,11 @@ export default function OptimizedImage({
                 if (loadingStateRef.current === 'idle' || loadingStateRef.current === 'loading') {
                   loadingStateRef.current = 'error';
                   setHasError(true);
+                }
+              }}
+              onLoadStart={() => {
+                if (loadingStateRef.current === 'idle') {
+                  loadingStateRef.current = 'loading';
                 }
               }}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
