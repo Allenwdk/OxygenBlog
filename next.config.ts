@@ -2,7 +2,23 @@ const nextConfig = {
   // 只在构建时启用静态导出，开发时禁用以避免 generateStaticParams 错误
   ...(process.env.NODE_ENV === "production" && { output: "export" }),
   trailingSlash: true,
-  // 移除NEXT_PUBLIC_BASE_PATH环境变量，避免与Next.js内置basePath冲突
+  // 环境变量配置，供客户端组件使用
+  env: {
+    NEXT_PUBLIC_BASE_PATH: (() => {
+      if (!process.env.GITHUB_ACTIONS) return "";
+      
+      const repoName = process.env.REPO_NAME || 
+                      process.env.GITHUB_REPOSITORY?.split("/")[1] || 
+                      "blog-platform";
+      
+      // 如果仓库名以 .github.io 结尾，说明是用户主页仓库，不需要 basePath
+      if (repoName.endsWith(".github.io")) {
+        return "";
+      }
+      
+      return `/${repoName}`;
+    })()
+  },
   // 静态导出时的资源前缀配置
   ...(process.env.NODE_ENV === "production" && {
     // 动态获取仓库名，支持多种方式：

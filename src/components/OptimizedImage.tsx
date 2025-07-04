@@ -12,8 +12,8 @@ function isExternalImage(src: string): boolean {
 }
 
 /**
- * 处理图片路径，避免重复添加basePath
- * Next.js的basePath配置会自动处理路径前缀，这里只需要标准化路径格式
+ * 处理图片路径，正确添加basePath支持
+ * 对于外部图片使用Next.js Image组件，对于本地图片需要手动添加basePath
  */
 function processImagePath(src: string): string {
   // 如果是外部链接，直接返回
@@ -21,21 +21,23 @@ function processImagePath(src: string): string {
     return src;
   }
   
+  // 获取basePath
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  
   // 如果是相对路径（如 ./assets/example.svg 或 ../assets/example.svg），转换为绝对路径
   if (src.startsWith('./') || src.startsWith('../')) {
     // 移除相对路径前缀，转换为从public目录开始的路径
     const cleanPath = src.replace(/^\.\.?\//, '');
-    return `/${cleanPath}`;
+    return basePath ? `${basePath}/${cleanPath}` : `/${cleanPath}`;
   }
   
-  // 如果已经是绝对路径（以/开头），直接返回
-  // Next.js的basePath会自动处理
+  // 如果已经是绝对路径（以/开头），添加basePath
   if (src.startsWith('/')) {
-    return src;
+    return basePath ? `${basePath}${src}` : src;
   }
   
-  // 其他情况，假设是相对于public目录的路径，添加前导斜杠
-  return `/${src}`;
+  // 其他情况，假设是相对于public目录的路径
+  return basePath ? `${basePath}/${src}` : `/${src}`;
 }
 
 interface OptimizedImageProps {
