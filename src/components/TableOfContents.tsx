@@ -270,7 +270,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
                   className={`
                     w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 relative group cursor-pointer
                     ${isActive
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                      ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'
                     }
                     ${heading.level === 1 ? 'font-medium' : ''}
@@ -281,13 +281,13 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
                 >
                   {/* 活跃指示器 */}
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-0.5 h-4 bg-blue-500 rounded-r" />
+                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-0.5 h-4 bg-primary rounded-r" />
                   )}
                   
                   {/* 层级点 */}
                   {heading.level > 1 && (
                     <span 
-                      className="absolute w-1 h-1 bg-gray-300 dark:bg-gray-600 rounded-full group-hover:bg-blue-400 transition-colors"
+                      className="absolute w-1 h-1 bg-gray-300 dark:bg-gray-600 rounded-full group-hover:bg-primary transition-colors"
                       style={{ left: `${levelIndent}px`, top: '50%', transform: 'translateY(-50%)' }}
                     />
                   )}

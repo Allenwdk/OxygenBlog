@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { categories } from '@/setting/blogSetting';
+import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
 
 /**
@@ -31,6 +32,7 @@ interface ClientBlogsPageProps {
 export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCategoryCollapsed, setIsCategoryCollapsed] = useState<boolean>(true);
+  const { containerStyle } = useBackgroundStyle('blogs');
   
   /**
    * 过滤博客文章
@@ -59,7 +61,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
   // 如果没有任何博客数据，显示空页面提示
   if (initialPosts.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 pt-20">
+      <div className={containerStyle.className} style={containerStyle.style}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* 页面标题 */}
           <motion.div 
@@ -68,7 +70,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
               📝 博客文章
             </h1>
           </motion.div>
@@ -82,15 +84,15 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
           >
             <div className="max-w-md mx-auto">
               <div className="text-6xl mb-6">📄</div>
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">
                 暂无博客文章
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
+              <p className="text-secondary mb-8">
                 还没有发布任何博客文章，请稍后再来查看。
               </p>
               <Link 
                 href="/"
-                className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
               >
                 返回首页
               </Link>
@@ -102,7 +104,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 pt-20">
+    <div className={containerStyle.className} style={containerStyle.style}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 页面标题 */}
         <motion.div 
@@ -111,7 +113,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             📝 博客文章
           </h1>
         </motion.div>
@@ -125,19 +127,19 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
         >
           <button
             onClick={() => setIsCategoryCollapsed(!isCategoryCollapsed)}
-            className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-between text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="w-full bg-background rounded-lg shadow-md p-4 flex items-center justify-between text-foreground hover:bg-background/80 transition-colors border border-gray-200 dark:border-gray-700"
           >
             <span className="flex items-center gap-2">
               <span>📂</span>
               <span className="font-medium">分类筛选</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-secondary">
                 ({selectedCategory === 'all' ? '全部' : selectedCategory})
               </span>
             </span>
             <motion.span
               animate={{ rotate: isCategoryCollapsed ? 0 : 180 }}
               transition={{ duration: 0.2 }}
-              className="text-gray-400"
+              className="text-secondary"
             >
               ▼
             </motion.span>
@@ -153,7 +155,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md mt-2 p-4">
+            <div className="bg-background rounded-lg shadow-md mt-2 p-4 border border-gray-200 dark:border-gray-700">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {categories.map((category) => (
                    <button
@@ -161,8 +163,8 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                      onClick={() => setSelectedCategory(category)}
                      className={`px-3 py-2 rounded-md text-sm transition-colors ${
                        selectedCategory === category
-                         ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                         ? 'bg-primary/10 text-primary border border-primary/20'
+                         : 'text-gray-600 dark:text-gray-400 hover:bg-primary/5 hover:text-primary'
                      }`}
                    >
                      {category === 'all' ? '全部' : category}
@@ -181,8 +183,8 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-24">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <div className="bg-background rounded-lg shadow-md p-6 sticky top-24 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
                 📂 分类筛选
               </h3>
               <div className="space-y-2">
@@ -192,8 +194,8 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                     onClick={() => setSelectedCategory(category)}
                     className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
                       selectedCategory === category
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-primary/10 text-primary border border-primary/20'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-primary/5 hover:text-primary'
                     }`}
                   >
                     {category === 'all' ? '全部' : category}
@@ -234,36 +236,36 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                     y: -5,
                     transition: { duration: 0.2 }
                   }}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
+                  className="bg-background rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border border-gray-200 dark:border-gray-700"
                 >
                   <Link href={`/blogs/${encodeURIComponent(post.slug)}`}>
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm font-medium">
+                        <span className="bg-primary/10 text-primary px-2 py-1 rounded text-sm font-medium border border-primary/20">
                           {post.category}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-gray-500 dark:text-gray-500">
                           预计阅读时间 {post.readTime} 分钟
                         </span>
                       </div>
                       
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                      <h2 className="text-xl font-semibold text-foreground mb-3 hover:text-primary transition-colors">
                         {post.title}
                       </h2>
                       
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                      <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
                         {post.excerpt}
                       </p>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-gray-500 dark:text-gray-500">
                           {post.date}
                         </span>
                         <div className="flex flex-wrap gap-1">
                           {post.tags.slice(0, 2).map((tag) => (
                             <span
                               key={tag}
-                              className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded"
+                              className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs rounded border border-gray-200 dark:border-gray-700"
                             >
                               {tag}
                             </span>
@@ -278,7 +280,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             
             {filteredPosts.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500 dark:text-gray-400 text-lg">
+                <p className="text-secondary text-lg">
                   暂无该分类下的文章
                 </p>
               </div>
