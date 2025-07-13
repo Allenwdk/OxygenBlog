@@ -12,6 +12,7 @@ import OptimizedImage from '@/components/OptimizedImage';
 import TableOfContents from '@/components/TableOfContents';
 import 'katex/dist/katex.min.css';
 import { EndWord } from '@/setting/blogSetting';
+import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
 /**
  * 标准化编程语言名称，解决大小写敏感问题
@@ -204,8 +205,10 @@ interface LinkProps {
  * @returns 渲染的博客详情页面
  */
 export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
+  const { containerStyle } = useBackgroundStyle('blog-detail');
+  
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 pt-20">
+    <div className={containerStyle.className} style={containerStyle.style}>
       {/* 目录组件 */}
       <TableOfContents content={blog.content} />
       
@@ -217,7 +220,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
         >
           <Link 
             href="/blogs" 
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-8 transition-colors"
+            className="inline-flex items-center text-primary hover:text-primary/80 mb-8 transition-colors"
           >
             ← 返回博客列表
           </Link>
@@ -229,13 +232,13 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
               {blog.title}
             </h1>
-            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-500">
               <span>{blog.date}</span>
               <span>•</span>
-              <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+              <span className="bg-primary/10 text-primary px-2 py-1 rounded border border-primary/20">
                 {blog.category}
               </span>
               <span>•</span>
@@ -246,7 +249,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                 {blog.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded"
+                    className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded border border-gray-200 dark:border-gray-700"
                   >
                     #{tag}
                   </span>
@@ -257,7 +260,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
           
           {/* 文章内容 */}
           <motion.article 
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+            className="bg-background rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
@@ -338,7 +341,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                        if (isInlineCode) {
                          return (
                            <code 
-                             className="font-mono text-sm bg-gray-50 dark:bg-gray-800/50 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded-sm inline" 
+                             className="font-mono text-sm bg-accent/10 text-accent px-1.5 py-0.5 rounded-sm inline border border-accent/20 break-words" 
                              {...props}
                            >
                              {textContent}
@@ -387,9 +390,9 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                      },
                     blockquote({ children }: ComponentProps) {
                        return (
-                         <blockquote className="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-4 my-4 rounded-r-lg">
+                         <blockquote className="border-l-4 border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 p-4 my-4 rounded-r-lg">
                            <div className="flex items-start">
-                             <div className="text-blue-500 mr-2 text-lg">💡</div>
+                             <div className="text-gray-600 dark:text-gray-400 mr-2 text-lg">💡</div>
                              <div className="flex-1">{children}</div>
                            </div>
                          </blockquote>
@@ -413,7 +416,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                      },
                      tbody({ children }: ComponentProps) {
                        return (
-                         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                         <tbody className="bg-background divide-y divide-gray-200 dark:divide-gray-700">
                            {children}
                          </tbody>
                        );
@@ -427,14 +430,14 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                      },
                      th({ children }: ComponentProps) {
                        return (
-                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
                            {children}
                          </th>
                        );
                      },
                      td({ children }: ComponentProps) {
                         return (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
                             {children}
                           </td>
                         );
@@ -444,7 +447,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                          children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
                          React.Children.toArray(children).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h1 id={id} className="text-3xl font-bold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white no-underline">
+                         <h1 id={id} className="text-3xl font-bold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 text-foreground no-underline">
                            {children}
                          </h1>
                        );
@@ -454,7 +457,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                          children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
                          React.Children.toArray(children).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h2 id={id} className="text-2xl font-semibold mt-6 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white no-underline">
+                         <h2 id={id} className="text-2xl font-semibold mt-6 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-foreground no-underline">
                            {children}
                          </h2>
                        );
@@ -464,7 +467,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                          children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
                          React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h3 id={id} className="text-xl font-semibold mt-5 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h3 id={id} className="text-xl font-semibold mt-5 mb-2 text-foreground no-underline">
                            {children}
                          </h3>
                        );
@@ -474,7 +477,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                          children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
                          React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h4 id={id} className="text-lg font-semibold mt-4 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h4 id={id} className="text-lg font-semibold mt-4 mb-2 text-foreground no-underline">
                            {children}
                          </h4>
                        );
@@ -484,7 +487,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                          children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
                          React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h5 id={id} className="text-base font-semibold mt-3 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h5 id={id} className="text-base font-semibold mt-3 mb-2 text-foreground no-underline">
                            {children}
                          </h5>
                        );
@@ -494,28 +497,28 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                          children.toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') :
                          React.Children.toArray(children as React.ReactNode[]).join('').toLowerCase().replace(/[^\w\u4e00-\u9fff\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                        return (
-                         <h6 id={id} className="text-sm font-semibold mt-3 mb-2 text-gray-900 dark:text-white no-underline">
+                         <h6 id={id} className="text-sm font-semibold mt-3 mb-2 text-foreground no-underline">
                            {children}
                          </h6>
                        );
                      },
                      ol({ children }: any) {
                        return (
-                         <ol className="list-decimal list-outside ml-6 my-4 space-y-2 text-gray-700 dark:text-gray-300">
+                         <ol className="list-decimal list-outside ml-6 my-4 space-y-2 text-gray-700 dark:text-gray-300 break-words">
                            {children}
                          </ol>
                        );
                      },
                      ul({ children }: any) {
                        return (
-                         <ul className="list-disc list-outside ml-6 my-4 space-y-2 text-gray-700 dark:text-gray-300">
+                         <ul className="list-disc list-outside ml-6 my-4 space-y-2 text-gray-700 dark:text-gray-300 break-words">
                            {children}
                          </ul>
                        );
                      },
                      li({ children }: any) {
                        return (
-                         <li className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                         <li className="text-gray-700 dark:text-gray-300 leading-relaxed break-words">
                            {children}
                          </li>
                        );
@@ -524,7 +527,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                        return (
                          <a 
                            href={href as string}
-                           className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-2 underline-offset-2 transition-colors"
+                           className="text-primary hover:text-primary/80 underline decoration-2 underline-offset-2 transition-colors"
                            target={href?.startsWith('http') ? '_blank' : '_self'}
                            rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
                          >
@@ -568,11 +571,11 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
           >
             <Link 
               href="/blogs" 
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
             >
               ← 返回列表
             </Link>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-gray-500 dark:text-gray-500">
               {EndWord}
             </div>
           </motion.div>

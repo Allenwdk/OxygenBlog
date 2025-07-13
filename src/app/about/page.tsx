@@ -12,19 +12,157 @@ import MailIcon from '@/assets/mail.svg';
 import GitHubIcon from '@/assets/github.svg';
 import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, mainContactMeDescription, subContactMeDescription, mail, github, isBorder}
 from '@/setting/AboutSetting';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useTheme } from 'next-themes';
+import { useMemo, useEffect } from 'react';
+import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
+// 定义颜色对象的类型
+interface ColorScheme {
+  primary: string;
+  primaryForeground: string;
+  secondary: string;
+  accent: string;
+  accentForeground: string;
+}
 
+/**
+ * 关于页面组件
+ * 支持主题色动态配置和美观的渐变效果
+ */
 export default function AboutPage() {
+  const { getCurrentScheme, mounted } = useThemeColor();
+  const { resolvedTheme } = useTheme();
+  const { containerStyle, isBackgroundEnabled } = useBackgroundStyle('about');
+
+  // 获取当前主题色方案
+  const currentScheme = getCurrentScheme();
+  const isDark = resolvedTheme === 'dark';
+  const colors: ColorScheme = isDark ? currentScheme.dark : currentScheme.light;
+
+  // 调试：打印当前主色
+  console.log('about colors.primary', colors.primary);
+
+  /**
+   * 监听主题色变化，强制重新渲染
+   */
+  useEffect(() => {
+    // 强制重新渲染以确保所有样式都更新
+    const timer = setTimeout(() => {
+      // 这个 effect 会在主题色变化时触发，确保组件重新渲染
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [currentScheme, isDark, colors.primary, colors.secondary, colors.accent]);
+
+  /**
+   * 将OKLCH颜色转换为CSS可用的格式
+   */
+  const formatOklchColor = (oklchColor: string, alpha: number = 1): string => {
+    if (alpha === 1) {
+      return oklchColor;
+    }
+    // 将 oklch(l c h) 转换为 oklch(l c h / alpha)
+    return oklchColor.replace(')', ` / ${alpha})`);
+  };
+
+  /**
+   * 生成简化的背景样式
+   */
+  const backgroundStyle = useMemo(() => {
+    // 如果启用了背景图片，返回透明背景
+    if (isBackgroundEnabled) {
+      return {};
+    }
+    
+    // 否则使用原有的渐变背景
+    const baseGradient = isDark 
+      ? 'linear-gradient(135deg, rgb(17, 24, 39), rgb(31, 41, 55))'
+      : 'linear-gradient(135deg, rgb(249, 250, 251), rgb(229, 231, 235))';
+
+    const themeOverlay = `radial-gradient(ellipse at top left, ${formatOklchColor(colors.primary, 0.1)}, transparent 60%), radial-gradient(ellipse at bottom right, ${formatOklchColor(colors.secondary, 0.1)}, transparent 60%)`;
+
+    return {
+      background: `${themeOverlay}, ${baseGradient}`
+    };
+  }, [colors.primary, colors.secondary, isDark, isBackgroundEnabled]);
+
+  // 标语渐变样式
+  const sloganGradientStyle = useMemo(() => ({
+    backgroundImage: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
+  }), [colors.primary, colors.secondary]);
+
+  // 技术栈卡片样式
+  const techStackCardStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${formatOklchColor(colors.primary, 0.1)}, ${formatOklchColor(colors.primary, 0.05)})`,
+    borderColor: formatOklchColor(colors.primary, 0.3)
+  }), [colors.primary]);
+
+  // 关于我卡片样式
+  const aboutMeCardStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${formatOklchColor(colors.secondary, 0.1)}, ${formatOklchColor(colors.secondary, 0.05)})`,
+    borderColor: formatOklchColor(colors.secondary, 0.3)
+  }), [colors.secondary]);
+
+  // 联系方式区域样式
+  const contactSectionStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${formatOklchColor(colors.accent, 0.08)}, ${formatOklchColor(colors.accent, 0.04)})`,
+    borderColor: formatOklchColor(colors.accent, 0.2)
+  }), [colors.accent]);
+
+  // 联系我标题渐变样式
+  const contactTitleGradientStyle = useMemo(() => ({
+    backgroundImage: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`
+  }), [colors.primary, colors.accent]);
+
+  // 邮箱卡片悬停样式
+  const emailCardHoverStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${formatOklchColor(colors.primary, 0.15)}, ${formatOklchColor(colors.primary, 0.08)})`
+  }), [colors.primary]);
+
+  // GitHub卡片悬停样式
+  const githubCardHoverStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${formatOklchColor(colors.secondary, 0.15)}, ${formatOklchColor(colors.secondary, 0.08)})`
+  }), [colors.secondary]);
+
+  // 如果还没有挂载，显示默认样式避免闪烁
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 pt-[65px]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+            <div className="p-8">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 pt-[65px]">
+    <div 
+      key={`about-${currentScheme.name}-${isDark}`}
+      className={containerStyle.className}
+      style={{...containerStyle.style, ...backgroundStyle}}
+    >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 主要内容卡片 */}
         <div className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-          {/* 头部区域 */}
-          <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-8 text-white">
+          {/* 头部区域 - 使用主题色背景 */}
+          <div 
+            className="relative p-8 text-white transition-all duration-500"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+            }}
+          >
             <div className="absolute inset-0 bg-black/10"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
             <div className="relative z-10">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">{title}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 drop-shadow-lg">{title}</h1>
             </div>
           </div>
 
@@ -32,7 +170,10 @@ export default function AboutPage() {
           <div className="p-8 md:p-10 md:pt-8">
             {/* 标语区域 */}
             <div className="text-center mb-12">
-              <div className="text-3xl md:text-4xl lg:text-5xl font-semibold max-w-4xl mx-auto relative z-20 py-3 bg-clip-text text-transparent bg-gradient-to-b from-neutral-800 via-neutral-700 to-neutral-700 dark:from-neutral-200 dark:via-white dark:to-white">
+              <div 
+                className="text-3xl md:text-4xl lg:text-5xl font-semibold max-w-4xl mx-auto relative z-20 py-3 bg-clip-text text-transparent transition-all duration-500"
+                style={sloganGradientStyle}
+              >
                 {BeforeAnimationText}<Cover>{AnimationText}</Cover>
               </div>
               <div className={`${isBorder ? 'border border-black/[0.2] dark:border-white/[0.2]' : ''} flex flex-col items-start max-w-sm mx-auto p-4 relative h-[30rem]`}>
@@ -54,11 +195,20 @@ export default function AboutPage() {
 
             {/* 个人介绍卡片网格 */}
             <div className="grid md:grid-cols-2 gap-8 mb-12">
-              {/* 技术栈卡片 */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+              {/* 技术栈卡片 - 使用丰富的主题色渐变 */}
+              <div 
+                className="rounded-xl p-6 border transition-all duration-500 shadow-lg hover:shadow-xl"
+                style={techStackCardStyle}
+              >
                 <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-white font-bold text-lg">⚙️</span>
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mr-3 transition-all duration-300"
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: 'white'
+                    }}
+                  >
+                    <span className="font-bold text-lg">⚙️</span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-800 dark:text-white">技术栈</h3>
                 </div>
@@ -67,14 +217,22 @@ export default function AboutPage() {
                     <IconCloud images={images} />
                   </div>
                 </div>
-                
               </div>
 
-              {/* 兴趣爱好卡片 */}
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
+              {/* 关于我卡片 - 使用丰富的主题色渐变 */}
+              <div 
+                className="rounded-xl p-6 border transition-all duration-500 shadow-lg hover:shadow-xl"
+                style={aboutMeCardStyle}
+              >
                 <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-white font-bold text-lg">🎯</span>
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mr-3 transition-all duration-300"
+                    style={{
+                      backgroundColor: colors.secondary,
+                      color: 'white'
+                    }}
+                  >
+                    <span className="font-bold text-lg">🎯</span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-800 dark:text-white">关于我</h3>
                 </div>
@@ -88,23 +246,31 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* 联系方式 */}
+            {/* 联系方式 - 使用丰富的主题色渐变 */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 rounded-2xl p-8 border border-indigo-200/50 dark:border-indigo-700/50 shadow-lg"
+              className="rounded-2xl p-8 border shadow-lg transition-all duration-500"
+              style={contactSectionStyle}
             >
               <div className="text-center mb-8">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.6 }}
-                  className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full mb-4 shadow-lg"
+                  className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 shadow-lg transition-all duration-300"
+                  style={{
+                    backgroundColor: colors.accent,
+                    color: 'white'
+                  }}
                 >
                   <span className="text-2xl">💬</span>
                 </motion.div>
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                <h3 
+                  className="text-2xl font-bold bg-clip-text text-transparent mb-3 transition-all duration-500"
+                  style={contactTitleGradientStyle}
+                >
                   联系我
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed max-w-2xl mx-auto">
@@ -127,9 +293,18 @@ export default function AboutPage() {
                   transition={{ duration: 0.5, delay: 0.7 }}
                   className="group relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={emailCardHoverStyle}
+                  ></div>
                   <div className="relative z-10">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <div 
+                      className="flex items-center justify-center w-12 h-12 rounded-lg mb-4 mx-auto group-hover:scale-110 transition-transform duration-300"
+                      style={{
+                        backgroundColor: colors.primary,
+                        color: 'white'
+                      }}
+                    >
                       <Image src={MailIcon as string} alt="Mail" width={24} height={24} className="text-white" />
                     </div>
                     <h4 className="text-lg font-semibold text-gray-800 dark:text-white text-center mb-2">
@@ -158,10 +333,19 @@ export default function AboutPage() {
                   transition={{ duration: 0.5, delay: 0.8 }}
                   className="group relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-gray-500/10 to-gray-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={githubCardHoverStyle}
+                  ></div>
                   <div className="relative z-10">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 rounded-lg mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                      <Image src={GitHubIcon as string} alt="GitHub" width={24} height={24} className="text-gray-800 dark:text-white" />
+                    <div 
+                      className="flex items-center justify-center w-12 h-12 rounded-lg mb-4 mx-auto group-hover:scale-110 transition-transform duration-300"
+                      style={{
+                        backgroundColor: colors.secondary,
+                        color: 'white'
+                      }}
+                    >
+                      <Image src={GitHubIcon as string} alt="GitHub" width={24} height={24} className="text-white" />
                     </div>
                     <h4 className="text-lg font-semibold text-gray-800 dark:text-white text-center mb-2">
                       GitHub
