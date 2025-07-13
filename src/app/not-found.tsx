@@ -68,7 +68,7 @@ export default function NotFound() {
         {/* 装饰性元素 */}
         <div className="mt-12 opacity-50">
           <div className="flex justify-center space-x-2">
-            {[...Array(3)].map((_, i) => (
+            {Array.from({ length: 3 }, (_, i) => (
               <div
                 key={i}
                 className="w-2 h-2 rounded-full animate-pulse"

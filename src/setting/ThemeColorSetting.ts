@@ -311,7 +311,7 @@ export const getSavedCustomTheme = (): ThemeColorScheme | null => {
     const saved = localStorage.getItem("custom-theme");
     if (saved) {
       try {
-        return JSON.parse(saved);
+        return JSON.parse(saved) as ThemeColorScheme;
       } catch {
         return null;
       }

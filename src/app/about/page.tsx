@@ -17,86 +17,42 @@ import { useTheme } from 'next-themes';
 import { useMemo, useEffect } from 'react';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
+// 定义颜色对象的类型
+interface ColorScheme {
+  primary: string;
+  primaryForeground: string;
+  secondary: string;
+  accent: string;
+  accentForeground: string;
+}
+
 /**
  * 关于页面组件
  * 支持主题色动态配置和美观的渐变效果
  */
 export default function AboutPage() {
-  const { getCurrentScheme, mounted, updateTrigger } = useThemeColor();
+  const { getCurrentScheme, mounted } = useThemeColor();
   const { resolvedTheme } = useTheme();
   const { containerStyle, isBackgroundEnabled } = useBackgroundStyle('about');
 
   // 获取当前主题色方案
   const currentScheme = getCurrentScheme();
   const isDark = resolvedTheme === 'dark';
-  const colors = isDark ? currentScheme.dark : currentScheme.light;
+  const colors: ColorScheme = isDark ? currentScheme.dark : currentScheme.light;
 
   // 调试：打印当前主色
   console.log('about colors.primary', colors.primary);
-  // 监听 updateTrigger，确保主题色切换时页面刷新
-  useEffect(() => {
-    // 只要 updateTrigger 变化，强制刷新
-  }, [updateTrigger]);
+
   /**
    * 监听主题色变化，强制重新渲染
    */
-  // 已移除 useEffect，依赖 useThemeColor 的响应式能力
   useEffect(() => {
     // 强制重新渲染以确保所有样式都更新
     const timer = setTimeout(() => {
       // 这个 effect 会在主题色变化时触发，确保组件重新渲染
     }, 0);
     return () => clearTimeout(timer);
-  }, [currentScheme, isDark, updateTrigger, colors.primary, colors.secondary, colors.accent]);
-
-  /**
-   * 生成互补色和谐色系
-   */
-  // 已移除 colorPalette 相关逻辑，所有渐变直接依赖 colors
-  const colorPalette = useMemo(() => {
-    // 从OKLCH颜色中提取数值
-    const extractOklchValues = (oklchColor: string) => {
-      const match = oklchColor.match(/oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/);
-      if (match) {
-        return {
-          l: parseFloat(match[1]),
-          c: parseFloat(match[2]),
-          h: parseFloat(match[3])
-        };
-      }
-      return { l: 0.7, c: 0.15, h: 220 }; // 默认值
-    };
-
-    const primary = extractOklchValues(colors.primary);
-    const secondary = extractOklchValues(colors.secondary);
-    const accent = extractOklchValues(colors.accent);
-
-    // 生成和谐色系
-    const generateHarmoniousColors = (base: any) => {
-      return {
-        // 互补色 (色相+180度)
-        complement: `oklch(${base.l} ${base.c} ${(base.h + 180) % 360})`,
-        // 三角色 (色相+120度)
-        triadic1: `oklch(${base.l} ${base.c} ${(base.h + 120) % 360})`,
-        triadic2: `oklch(${base.l} ${base.c} ${(base.h + 240) % 360})`,
-        // 类似色 (色相±30度)
-        analogous1: `oklch(${base.l} ${base.c} ${(base.h + 30) % 360})`,
-        analogous2: `oklch(${base.l} ${base.c} ${(base.h - 30 + 360) % 360})`,
-        // 明度变化
-        lighter: `oklch(${Math.min(1, base.l + 0.2)} ${base.c * 0.8} ${base.h})`,
-        darker: `oklch(${Math.max(0, base.l - 0.2)} ${base.c * 1.2} ${base.h})`,
-        // 饱和度变化
-        muted: `oklch(${base.l} ${base.c * 0.5} ${base.h})`,
-        vibrant: `oklch(${base.l} ${Math.min(0.4, base.c * 1.5)} ${base.h})`
-      };
-    };
-
-    return {
-      primary: generateHarmoniousColors(primary),
-      secondary: generateHarmoniousColors(secondary),
-      accent: generateHarmoniousColors(accent)
-    };
-  }, [colors.primary, colors.secondary, colors.accent, updateTrigger]);
+  }, [currentScheme, isDark, colors.primary, colors.secondary, colors.accent]);
 
   /**
    * 将OKLCH颜色转换为CSS可用的格式
@@ -128,45 +84,45 @@ export default function AboutPage() {
     return {
       background: `${themeOverlay}, ${baseGradient}`
     };
-  }, [colors.primary, colors.secondary, isDark, updateTrigger, isBackgroundEnabled]);
+  }, [colors.primary, colors.secondary, isDark, isBackgroundEnabled]);
 
   // 标语渐变样式
   const sloganGradientStyle = useMemo(() => ({
     backgroundImage: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-  }), [colors.primary, colors.secondary, updateTrigger]);
+  }), [colors.primary, colors.secondary]);
 
   // 技术栈卡片样式
   const techStackCardStyle = useMemo(() => ({
     background: `linear-gradient(135deg, ${formatOklchColor(colors.primary, 0.1)}, ${formatOklchColor(colors.primary, 0.05)})`,
     borderColor: formatOklchColor(colors.primary, 0.3)
-  }), [colors.primary, updateTrigger]);
+  }), [colors.primary]);
 
   // 关于我卡片样式
   const aboutMeCardStyle = useMemo(() => ({
     background: `linear-gradient(135deg, ${formatOklchColor(colors.secondary, 0.1)}, ${formatOklchColor(colors.secondary, 0.05)})`,
     borderColor: formatOklchColor(colors.secondary, 0.3)
-  }), [colors.secondary, updateTrigger]);
+  }), [colors.secondary]);
 
   // 联系方式区域样式
   const contactSectionStyle = useMemo(() => ({
     background: `linear-gradient(135deg, ${formatOklchColor(colors.accent, 0.08)}, ${formatOklchColor(colors.accent, 0.04)})`,
     borderColor: formatOklchColor(colors.accent, 0.2)
-  }), [colors.accent, updateTrigger]);
+  }), [colors.accent]);
 
   // 联系我标题渐变样式
   const contactTitleGradientStyle = useMemo(() => ({
     backgroundImage: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`
-  }), [colors.primary, colors.accent, updateTrigger]);
+  }), [colors.primary, colors.accent]);
 
   // 邮箱卡片悬停样式
   const emailCardHoverStyle = useMemo(() => ({
     background: `linear-gradient(135deg, ${formatOklchColor(colors.primary, 0.15)}, ${formatOklchColor(colors.primary, 0.08)})`
-  }), [colors.primary, updateTrigger]);
+  }), [colors.primary]);
 
   // GitHub卡片悬停样式
   const githubCardHoverStyle = useMemo(() => ({
     background: `linear-gradient(135deg, ${formatOklchColor(colors.secondary, 0.15)}, ${formatOklchColor(colors.secondary, 0.08)})`
-  }), [colors.secondary, updateTrigger]);
+  }), [colors.secondary]);
 
   // 如果还没有挂载，显示默认样式避免闪烁
   if (!mounted) {
@@ -189,7 +145,7 @@ export default function AboutPage() {
 
   return (
     <div 
-      key={`about-${updateTrigger}-${currentScheme.name}-${isDark}`}
+      key={`about-${currentScheme.name}-${isDark}`}
       className={containerStyle.className}
       style={{...containerStyle.style, ...backgroundStyle}}
     >

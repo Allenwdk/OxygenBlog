@@ -8,7 +8,7 @@
 
 export default function Home() {
   const router = useRouter();
-  const { containerStyle, sectionStyle, buttonStyle } = useBackgroundStyle('home');
+  const { containerStyle, sectionStyle } = useBackgroundStyle('home');
 
   return (
     <div className={containerStyle.className} style={containerStyle.style}>

@@ -132,7 +132,7 @@ export function ThemeColorProvider({ children }: { children: React.ReactNode }) 
       return customTheme;
     }
     return getThemeColorScheme(currentColorScheme);
-  }, [currentColorScheme, customTheme, updateTrigger]);
+  }, [currentColorScheme, customTheme]);
 
   const contextValue = {
     currentColorScheme,
