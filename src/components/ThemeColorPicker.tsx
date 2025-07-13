@@ -231,13 +231,37 @@ export default function ThemeColorPicker({ className = '' }: ThemeColorPickerPro
    */
   const toggleDropdown = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!isOpen) {
-      // 计算按钮位置
+      // 计算按钮位置 - 使用固定定位，相对于视口
       const button = event.currentTarget;
       const rect = button.getBoundingClientRect();
-      setButtonPosition({
-        top: rect.bottom + window.scrollY + 8, // 按钮底部 + 8px 间距
-        right: window.innerWidth - rect.right + window.scrollX // 从右边缘计算
-      });
+      
+      // 下拉菜单的预估尺寸
+      const dropdownWidth = 320; // 80 * 4 = 320px
+      const dropdownMinHeight = 300;
+      
+      // 计算最佳位置
+      let top = rect.bottom + 8;
+      let right = window.innerWidth - rect.right;
+      
+      // 检查右边界，如果超出则调整到左对齐
+      if (right + dropdownWidth > window.innerWidth) {
+        right = window.innerWidth - rect.left - dropdownWidth;
+        // 如果左对齐还是超出，则居中对齐
+        if (right < 0) {
+          right = Math.max(10, (window.innerWidth - dropdownWidth) / 2);
+        }
+      }
+      
+      // 检查下边界，如果空间不足则向上显示
+      const availableSpaceBelow = window.innerHeight - top;
+      if (availableSpaceBelow < dropdownMinHeight && rect.top > dropdownMinHeight) {
+        top = rect.top - dropdownMinHeight - 8; // 向上显示
+      }
+      
+      // 确保不超出顶部
+      top = Math.max(10, top);
+      
+      setButtonPosition({ top, right });
     }
     setIsOpen(!isOpen);
   };
@@ -261,7 +285,7 @@ export default function ThemeColorPicker({ className = '' }: ThemeColorPickerPro
         style={{
           top: `${buttonPosition.top}px`,
           right: `${buttonPosition.right}px`,
-          maxHeight: `${Math.max(200, window.innerHeight - buttonPosition.top - 20)}px`,
+          maxHeight: `${Math.max(300, window.innerHeight - buttonPosition.top - 40)}px`,
           overflowY: 'auto'
         }}
       >
