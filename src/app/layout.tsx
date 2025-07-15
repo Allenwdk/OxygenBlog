@@ -4,7 +4,6 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { ThemeColorProvider } from "@/hooks/useThemeColor";
 import { webTitle, webDescription, backgroundImage, enableBackground } from "@/setting/WebSetting";
 
 const geistSans = Geist({
@@ -49,114 +48,62 @@ export default function RootLayout({
                     document.documentElement.classList.remove('dark');
                   }
                   
-                  // 预加载主题色设置
-                  var themeColor = localStorage.getItem('theme-color') || 'blue';
-                  var customTheme = null;
-                  
-                  if (themeColor === 'custom') {
-                    try {
-                      customTheme = JSON.parse(localStorage.getItem('custom-theme') || 'null');
-                    } catch (e) {
-                      themeColor = 'blue';
-                    }
-                  }
-                  
-                  // 预定义的主题色方案
-                  var themeSchemes = {
-                    blue: {
-                      light: {
-                        primary: 'oklch(0.6 0.15 250)',
-                        primaryForeground: 'oklch(0.98 0.02 250)',
-                        secondary: 'oklch(0.95 0.02 250)',
-                        accent: 'oklch(0.9 0.05 250)',
-                        accentForeground: 'oklch(0.3 0.1 250)'
-                      },
-                      dark: {
-                        primary: 'oklch(0.7 0.15 250)',
-                        primaryForeground: 'oklch(0.1 0.02 250)',
-                        secondary: 'oklch(0.15 0.02 250)',
-                        accent: 'oklch(0.2 0.05 250)',
-                        accentForeground: 'oklch(0.8 0.1 250)'
-                      }
-                    },
-                    green: {
-                      light: {
-                        primary: 'oklch(0.55 0.15 140)',
-                        primaryForeground: 'oklch(0.98 0.02 140)',
-                        secondary: 'oklch(0.95 0.02 140)',
-                        accent: 'oklch(0.9 0.05 140)',
-                        accentForeground: 'oklch(0.3 0.1 140)'
-                      },
-                      dark: {
-                        primary: 'oklch(0.65 0.15 140)',
-                        primaryForeground: 'oklch(0.1 0.02 140)',
-                        secondary: 'oklch(0.15 0.02 140)',
-                        accent: 'oklch(0.2 0.05 140)',
-                        accentForeground: 'oklch(0.8 0.1 140)'
-                      }
-                    },
-                    purple: {
-                      light: {
-                        primary: 'oklch(0.6 0.15 300)',
-                        primaryForeground: 'oklch(0.98 0.02 300)',
-                        secondary: 'oklch(0.95 0.02 300)',
-                        accent: 'oklch(0.9 0.05 300)',
-                        accentForeground: 'oklch(0.3 0.1 300)'
-                      },
-                      dark: {
-                        primary: 'oklch(0.7 0.15 300)',
-                        primaryForeground: 'oklch(0.1 0.02 300)',
-                        secondary: 'oklch(0.15 0.02 300)',
-                        accent: 'oklch(0.2 0.05 300)',
-                        accentForeground: 'oklch(0.8 0.1 300)'
-                      }
-                    },
-                    orange: {
-                      light: {
-                        primary: 'oklch(0.65 0.15 50)',
-                        primaryForeground: 'oklch(0.98 0.02 50)',
-                        secondary: 'oklch(0.95 0.02 50)',
-                        accent: 'oklch(0.9 0.05 50)',
-                        accentForeground: 'oklch(0.3 0.1 50)'
-                      },
-                      dark: {
-                        primary: 'oklch(0.75 0.15 50)',
-                        primaryForeground: 'oklch(0.1 0.02 50)',
-                        secondary: 'oklch(0.15 0.02 50)',
-                        accent: 'oklch(0.2 0.05 50)',
-                        accentForeground: 'oklch(0.8 0.1 50)'
-                      }
-                    },
-                    red: {
-                      light: {
-                        primary: 'oklch(0.6 0.15 20)',
-                        primaryForeground: 'oklch(0.98 0.02 20)',
-                        secondary: 'oklch(0.95 0.02 20)',
-                        accent: 'oklch(0.9 0.05 20)',
-                        accentForeground: 'oklch(0.3 0.1 20)'
-                      },
-                      dark: {
-                        primary: 'oklch(0.7 0.15 20)',
-                        primaryForeground: 'oklch(0.1 0.02 20)',
-                        secondary: 'oklch(0.15 0.02 20)',
-                        accent: 'oklch(0.2 0.05 20)',
-                        accentForeground: 'oklch(0.8 0.1 20)'
-                      }
-                    }
-                  };
-                  
-                  // 应用主题色
-                  var scheme = customTheme || themeSchemes[themeColor] || themeSchemes.blue;
-                  var colors = resolvedTheme === 'dark' ? scheme.dark : scheme.light;
+                  // 立即应用紫色主题色，避免闪烁
+                  var isDark = resolvedTheme === 'dark';
                   var root = document.documentElement;
                   
-                  if (colors) {
-                    root.style.setProperty('--color-primary', colors.primary);
-                    root.style.setProperty('--color-primary-foreground', colors.primaryForeground);
-                    root.style.setProperty('--color-secondary', colors.secondary);
-                    root.style.setProperty('--color-accent', colors.accent);
-                    root.style.setProperty('--color-accent-foreground', colors.accentForeground);
+                  // 紫色主题配置
+                  var themeColors = {
+                    primary: "#8b5cf6",
+                    secondary: "#7c3aed", 
+                    accent: "#a855f7"
+                  };
+                  
+                  // 十六进制转RGB
+                  function hexToRgb(hex) {
+                    var result = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(hex);
+                    return result ? {
+                      r: parseInt(result[1], 16),
+                      g: parseInt(result[2], 16),
+                      b: parseInt(result[3], 16)
+                    } : { r: 0, g: 0, b: 0 };
                   }
+                  
+                  // 调整亮度
+                  function adjustBrightness(hex, factor) {
+                    var rgb = hexToRgb(hex);
+                    var adjust = function(value) {
+                      return Math.max(0, Math.min(255, Math.round(value * factor)));
+                    };
+                    
+                    var newR = adjust(rgb.r).toString(16).padStart(2, '0');
+                    var newG = adjust(rgb.g).toString(16).padStart(2, '0');
+                    var newB = adjust(rgb.b).toString(16).padStart(2, '0');
+                    
+                    return '#' + newR + newG + newB;
+                  }
+                  
+                  // 根据模式调整颜色
+                  var primaryColor = isDark 
+                    ? adjustBrightness(themeColors.primary, 1.3)
+                    : adjustBrightness(themeColors.primary, 0.8);
+                  var accentColor = isDark
+                    ? adjustBrightness(themeColors.accent, 1.2)
+                    : adjustBrightness(themeColors.accent, 0.9);
+                  var secondaryColor = isDark
+                    ? adjustBrightness(themeColors.secondary, 1.4)
+                    : themeColors.secondary;
+                  
+                  // 设置 CSS 变量
+                  root.style.setProperty('--theme-primary', primaryColor);
+                  root.style.setProperty('--theme-accent', accentColor);
+                  root.style.setProperty('--theme-secondary', secondaryColor);
+                  root.style.setProperty('--primary', primaryColor);
+                  root.style.setProperty('--primary-foreground', isDark ? '#0f0f0f' : '#ffffff');
+                  root.style.setProperty('--accent', accentColor);
+                  root.style.setProperty('--accent-foreground', isDark ? '#0f0f0f' : '#ffffff');
+                  root.style.setProperty('--secondary', secondaryColor);
+                  root.style.setProperty('--secondary-foreground', isDark ? '#f0f0f0' : '#1f1f1f');
                   
                   // 设置初始化标记
                   root.style.setProperty('--theme-initialized', '1');
@@ -180,21 +127,19 @@ export default function RootLayout({
           })
         }}
       >
-        <ThemeColorProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange={false}
-            storageKey="theme"
-          >
-            <Navigation />
-            <main className="min-h-screen transition-colors duration-300 relative">
-              {children}
-            </main>
-            <Footer />
-          </ThemeProvider>
-        </ThemeColorProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange={false}
+          storageKey="theme"
+        >
+          <Navigation />
+          <main className="min-h-screen transition-colors duration-300 relative">
+            {children}
+          </main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

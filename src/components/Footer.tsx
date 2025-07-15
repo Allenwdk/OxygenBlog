@@ -5,19 +5,16 @@
 
 import CopyrightNotice from './CopyrightNotice';
 import { beianhao, ICP, year, name, aWord, ICPLink } from '@/setting/FooterSetting';
-import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 import Link from 'next/link';
 
 /**
  * 页脚组件
  */
 export default function Footer() {
-  const { footerStyle } = useBackgroundStyle('home');
-  
   return (
-    <footer className={footerStyle.className} style={footerStyle.style}>
+    <footer className="bg-background border-t border-border/30 py-3">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p className="flex flex-wrap items-center justify-center gap-1 text-sm">
+        <p className="flex flex-wrap items-center justify-center gap-1 text-xs text-muted-foreground/70">
           {/* 备案号 */}
           {beianhao && (
             <>
@@ -32,7 +29,7 @@ export default function Footer() {
               href={ICPLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors duration-200 underline-offset-4 hover:underline"
+              className="text-muted-foreground/70 hover:text-primary transition-colors duration-200 underline-offset-4 hover:underline"
             >
               {ICP}
             </Link>

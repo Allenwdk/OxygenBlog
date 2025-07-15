@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { useEffect, useState } from 'react';
 
 /**
  * 404 页面组件
@@ -11,8 +11,38 @@ import { useThemeColor } from '@/hooks/useThemeColor';
  * @returns 404 错误页面
  */
 export default function NotFound() {
-  const { getCurrentScheme } = useThemeColor();
-  const currentScheme = getCurrentScheme();
+  const [mounted, setMounted] = useState(false);
+
+  // 确保组件已挂载
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 获取 CSS 变量中的主题色
+  const getThemeColor = (colorName: string): string => {
+    if (typeof window === 'undefined') return '#3b82f6'; // 默认蓝色
+    return getComputedStyle(document.documentElement).getPropertyValue(`--theme-${colorName}`).trim() || '#3b82f6';
+  };
+
+  // 获取当前主题色
+  const primaryColor = getThemeColor('primary');
+  const accentColor = getThemeColor('accent');
+
+  // 如果还没有挂载，显示默认样式避免闪烁
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md mx-auto">
+          <div className="animate-pulse">
+            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded mb-8"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -22,7 +52,7 @@ export default function NotFound() {
           <h1 
             className="text-8xl md:text-9xl font-bold bg-gradient-to-r bg-clip-text text-transparent"
             style={{
-              backgroundImage: `linear-gradient(135deg, ${currentScheme.light.primary}, ${currentScheme.light.accent})`
+              backgroundImage: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`
             }}
           >
             404
@@ -47,7 +77,7 @@ export default function NotFound() {
             href="/"
             className="px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
             style={{
-              backgroundColor: currentScheme.light.primary,
+              backgroundColor: primaryColor,
               color: 'white'
             }}
           >
@@ -57,7 +87,7 @@ export default function NotFound() {
             href="/blogs"
             className="px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
             style={{
-              backgroundColor: currentScheme.light.accent,
+              backgroundColor: accentColor,
               color: 'white'
             }}
           >
@@ -73,7 +103,7 @@ export default function NotFound() {
                 key={i}
                 className="w-2 h-2 rounded-full animate-pulse"
                 style={{
-                  backgroundColor: currentScheme.light.primary,
+                  backgroundColor: primaryColor,
                   animationDelay: `${i * 0.2}s`
                 }}
               />

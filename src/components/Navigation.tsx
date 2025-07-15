@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import ThemeToggle from './ThemeToggle';
-import ThemeColorPicker from './ThemeColorPicker';
 import { emojy, name } from '@/setting/NavigationSetting';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
 /**
  * 导航栏组件
- * 支持响应式设计、主题切换和主题色选择
+ * 支持响应式设计和主题切换
  */
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -88,16 +87,14 @@ export default function Navigation() {
                 </Link>
               ))}
             </div>
-            {/* 主题色选择器和主题切换按钮 */}
-            <div className="flex items-center space-x-2">
-              <ThemeColorPicker />
+            {/* 主题切换按钮 */}
+            <div className="flex items-center">
               <ThemeToggle />
             </div>
           </div>
           
           {/* Mobile menu button and theme controls */}
           <div className="md:hidden flex items-center space-x-2">
-            <ThemeColorPicker />
             <ThemeToggle />
             <button 
               onClick={toggleMobileMenu}
