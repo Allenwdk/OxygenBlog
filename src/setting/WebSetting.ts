@@ -8,7 +8,7 @@ export const webDescription = "个人博客"; // 网站描述：浏览器显示
 /**
  * 网站背景配置
  */
-export const backgroundImage = ""; // 网站整体背景图片路径：public背景下
+export const backgroundImage = "test-background.png"; // 网站整体背景图片路径：public背景下
 export const enableBackground = false; // 是否启用背景图片
 
 /**

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { enableBackground, backgroundImage } from '@/setting/WebSetting';
 
 type PageType = 'home' | 'blogs' | 'about' | 'blog-detail';
@@ -8,8 +8,20 @@ interface StyleConfig {
   style?: React.CSSProperties;
 }
 
+/**
+ * 背景样式 Hook
+ * 处理不同页面类型的背景样式，避免水合错误
+ */
 export function useBackgroundStyle(pageType: PageType) {
-  const isBackgroundEnabled = enableBackground && backgroundImage;
+  // 使用状态来避免服务端和客户端的不一致
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // 只有在客户端才启用背景图片功能
+  const isBackgroundEnabled = isClient && enableBackground && backgroundImage;
 
   const containerStyle = useMemo((): StyleConfig => {
     if (isBackgroundEnabled) {

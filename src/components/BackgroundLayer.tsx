@@ -6,13 +6,24 @@ import {
   backgroundMode, 
   backgroundFixed
 } from '@/setting/WebSetting';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 /**
  * 网站背景组件
  * 使用 CSS background-image 在最底层显示背景图片
+ * 在暗黑模式下添加黑色滤镜效果
  */
 export default function BackgroundLayer() {
-  if (!enableBackground || !backgroundImage) {
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // 确保组件在客户端挂载后再渲染，避免主题不匹配
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!enableBackground || !backgroundImage || !mounted) {
     return null;
   }
 
@@ -20,9 +31,9 @@ export default function BackgroundLayer() {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   const fullImagePath = `${basePath}${backgroundImage}`;
 
-  console.log('BackgroundLayer - Image path:', fullImagePath);
-  console.log('BackgroundLayer - Background mode:', backgroundMode);
-  console.log('BackgroundLayer - Background fixed:', backgroundFixed);
+  // 判断是否为暗黑模式
+  const isDark = resolvedTheme === 'dark';
+
 
   return (
     <div
@@ -33,7 +44,9 @@ export default function BackgroundLayer() {
         width: '100vw',
         height: '100vh',
         zIndex: -50,
-        backgroundImage: `url("${fullImagePath}")`,
+        backgroundImage: isDark 
+          ? `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("${fullImagePath}")`
+          : `url("${fullImagePath}")`,
         backgroundSize: backgroundMode === 'cover' ? 'cover' : backgroundMode === 'contain' ? 'contain' : 'cover',
         backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',

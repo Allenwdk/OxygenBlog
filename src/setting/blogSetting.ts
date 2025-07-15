@@ -12,7 +12,7 @@ export type CCLicenseType =
   | "CC BY-NC-ND";
 
 /**
- * 博客转载声明配置
+ * 博客转载声明配置类型，无需修改
  */
 export interface BlogCopyrightConfig {
   /** 是否显示转载声明 */

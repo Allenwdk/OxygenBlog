@@ -3,8 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import BackgroundLayer from "@/components/BackgroundLayer";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { webTitle, webDescription, backgroundImage, enableBackground } from "@/setting/WebSetting";
+import { webTitle, webDescription } from "@/setting/WebSetting";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,10 +27,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 处理背景图片路径
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-  const fullImagePath = enableBackground && backgroundImage ? `${basePath}${backgroundImage}` : '';
-
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
@@ -48,11 +45,11 @@ export default function RootLayout({
                     document.documentElement.classList.remove('dark');
                   }
                   
-                  // 立即应用紫色主题色，避免闪烁
+                  // 立即应用purple主题色，避免闪烁
                   var isDark = resolvedTheme === 'dark';
                   var root = document.documentElement;
                   
-                  // 紫色主题配置
+                  // purple主题配置
                   var themeColors = {
                     primary: "#8b5cf6",
                     secondary: "#7c3aed", 
@@ -117,14 +114,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-foreground transition-colors duration-300`}
         style={{
           colorScheme: 'light dark',
-          backgroundColor: fullImagePath ? 'transparent' : 'hsl(var(--background))',
-          ...(fullImagePath && {
-            backgroundImage: `url("${fullImagePath}")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed'
-          })
+          backgroundColor: 'hsl(var(--background))',
         }}
       >
         <ThemeProvider
@@ -134,6 +124,7 @@ export default function RootLayout({
           disableTransitionOnChange={false}
           storageKey="theme"
         >
+          <BackgroundLayer />
           <Navigation />
           <main className="min-h-screen transition-colors duration-300 relative">
             {children}

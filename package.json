@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "pnpm run sync-theme && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync-theme": "node scripts/sync-theme-colors.js",
+    "prebuild": "npm run sync-theme"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
