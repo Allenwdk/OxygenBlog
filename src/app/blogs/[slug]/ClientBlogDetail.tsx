@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 import Link from 'next/link';
 import LazyMarkdown from '@/components/LazyMarkdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ClipboardIcon } from '@heroicons/react/24/outline';
 import CopyrightNotice from '@/components/CopyrightNotice';
 import OptimizedImage from '@/components/OptimizedImage';
@@ -13,6 +13,7 @@ import TableOfContents from '@/components/TableOfContents';
 import 'katex/dist/katex.min.css';
 import { EndWord } from '@/setting/blogSetting';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
+import { useTheme } from 'next-themes';
 
 /**
  * 标准化编程语言名称，解决大小写敏感问题
@@ -205,7 +206,17 @@ interface LinkProps {
  * @returns 渲染的博客详情页面
  */
 export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
-  const { containerStyle } = useBackgroundStyle('blog-detail');
+  const { containerStyle, isBackgroundEnabled } = useBackgroundStyle('blog-detail');
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  
+  // 毛玻璃样式函数
+  const getGlassStyle = (baseClasses: string) => {
+    if (isBackgroundEnabled) {
+      return `${baseClasses} backdrop-blur-md bg-card/80 supports-[backdrop-filter]:bg-card/60 border-border/50`;
+    }
+    return `bg-card ${baseClasses} border-border`;
+  };
   
   return (
     <div className={containerStyle.className} style={containerStyle.style}>
@@ -260,7 +271,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
           
           {/* 文章内容 */}
           <motion.article 
-            className="bg-background rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700"
+            className={getGlassStyle("rounded-lg shadow-md overflow-hidden border")}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
@@ -301,7 +312,9 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                        );
                      },
                      pre: ({ children, ...props }: ComponentProps) => (
-                       <pre {...props} className="relative group my-6 bg-gray-800 dark:bg-gray-900 rounded-lg text-sm p-0 overflow-hidden">
+                       <pre {...props} className={`relative group my-6 rounded-lg text-sm p-0 overflow-hidden ${
+                         isDark ? 'bg-gray-800 dark:bg-gray-900' : 'bg-gray-100 border border-gray-300'
+                       }`}>
                          {children}
                        </pre>
                      ),
@@ -353,20 +366,28 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                        return (
                          <div className="relative">
                            {/* 代码块头部 - 包含语言标签和复制按钮 */}
-                           <div className="flex justify-between items-center bg-gray-650 px-4 py-2 rounded-t-lg border-b border-gray-700">
-                             <span className="text-xs text-gray-300 font-medium select-none">
+                           <div className={`flex justify-between items-center px-4 py-2 rounded-t-lg border-b ${
+                             isDark 
+                               ? 'bg-gray-650 border-gray-700 text-gray-300' 
+                               : 'bg-gray-100 border-gray-300 text-gray-700'
+                           }`}>
+                             <span className="text-xs font-medium select-none">
                                {getLanguageDisplayName(language)}
                              </span>
                              <button
                                onClick={() => navigator.clipboard.writeText(codeContent)}
-                               className="text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 p-1.5 rounded-md transition-colors duration-200"
+                               className={`p-1.5 rounded-md transition-colors duration-200 ${
+                                 isDark
+                                   ? 'text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600'
+                                   : 'text-gray-600 hover:text-gray-800 bg-gray-200 hover:bg-gray-300'
+                               }`}
                                title="复制代码"
                              >
                                <ClipboardIcon className="w-4 h-4" />
                              </button>
                            </div>
                            <SyntaxHighlighter
-                             style={oneDark}
+                             style={isDark ? oneDark : oneLight}
                              language={language}
                              PreTag="code"
                              customStyle={{
@@ -390,9 +411,9 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                      },
                     blockquote({ children }: ComponentProps) {
                        return (
-                         <blockquote className="border-l-4 border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 p-4 my-4 rounded-r-lg">
+                         <blockquote className="border-l-4 border-primary bg-primary/5 p-4 my-4 rounded-r-lg">
                            <div className="flex items-start">
-                             <div className="text-gray-600 dark:text-gray-400 mr-2 text-lg">💡</div>
+                             <div className="text-primary mr-2 text-lg">💡</div>
                              <div className="flex-1">{children}</div>
                            </div>
                          </blockquote>
@@ -409,7 +430,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                      },
                      thead({ children }: ComponentProps) {
                        return (
-                         <thead className="bg-gray-50 dark:bg-gray-800">
+                         <thead className="bg-gray-100 dark:bg-gray-800">
                            {children}
                          </thead>
                        );
@@ -423,7 +444,7 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
                      },
                      tr({ children }: ComponentProps) {
                        return (
-                         <tr className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                         <tr className="hover:bg-gray-100 dark:hover:bg-gray-800">
                            {children}
                          </tr>
                        );

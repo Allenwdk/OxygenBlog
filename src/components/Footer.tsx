@@ -8,11 +8,11 @@ import { beianhao, ICP, year, name, aWord, ICPLink } from '@/setting/FooterSetti
 import Link from 'next/link';
 
 /**
- * 页脚组件
+ * 页脚组件 - 毛玻璃透明效果
  */
 export default function Footer() {
   return (
-    <footer className="bg-background border-t border-border/30 py-3">
+    <footer className="backdrop-blur-md bg-background/80 border-t border-border/30 py-3 supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <p className="flex flex-wrap items-center justify-center gap-1 text-xs text-muted-foreground/70">
           {/* 备案号 */}

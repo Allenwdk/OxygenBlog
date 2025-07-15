@@ -10,7 +10,7 @@ import { motion } from 'motion/react';
 import Image from 'next/image';
 import MailIcon from '@/assets/mail.svg';
 import GitHubIcon from '@/assets/github.svg';
-import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, mainContactMeDescription, subContactMeDescription, mail, github, isBorder}
+import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, mainContactMeDescription, subContactMeDescription, mail, github, isBorder, isRainbowGradient}
 from '@/setting/AboutSetting';
 import { useTheme } from 'next-themes';
 import { useMemo, useEffect, useState } from 'react';
@@ -64,18 +64,43 @@ export default function AboutPage() {
     };
   }, [primaryColor, secondaryColor, isDark, isBackgroundEnabled]);
 
-  // 标语渐变样式 - 增强渐变效果
-  const sloganGradientStyle = useMemo(() => ({
-    backgroundImage: `
-      linear-gradient(135deg, 
-        ${primaryColor} 0%, 
-        ${accentColor} 30%, 
-        ${secondaryColor} 60%, 
-        ${primaryColor} 100%
-      )`,
-    backgroundSize: '200% 200%',
-    animation: 'gradientShift 6s ease-in-out infinite',
-  }), [primaryColor, secondaryColor, accentColor]);
+
+  // BeforeAnimationText 样式 - 根据配置选择彩虹渐变或主题色渐变
+  const beforeTextGradientStyle = useMemo(() => {
+    if (isRainbowGradient) {
+      // 优化的彩虹渐变色 - 更好的颜色搭配和动态效果
+      return {
+        backgroundImage: `
+          linear-gradient(135deg, 
+            #ff3366 0%,   /* 鲜红 */
+            #ff6b35 12%,  /* 橙红 */
+            #f7931e 24%,  /* 橙色 */
+            #ffcc02 36%,  /* 金黄 */
+            #9acd32 48%,  /* 黄绿 */
+            #00d4aa 60%,  /* 青绿 */
+            #00bfff 72%,  /* 天蓝 */
+            #6a5acd 84%,  /* 紫罗兰 */
+            #ff69b4 100%  /* 热粉 */
+          )`,
+        backgroundSize: '300% 300%',
+        animation: 'gradientShift 4s ease-in-out infinite',
+        filter: 'brightness(1.1) saturate(1.3)',
+      };
+    } else {
+      // 主题色渐变
+      return {
+        backgroundImage: `
+          linear-gradient(135deg, 
+            ${primaryColor} 0%, 
+            ${accentColor} 30%, 
+            ${secondaryColor} 60%, 
+            ${primaryColor} 100%
+          )`,
+        backgroundSize: '200% 200%',
+        animation: 'gradientShift 6s ease-in-out infinite',
+      };
+    }
+  }, [isRainbowGradient, primaryColor, secondaryColor, accentColor]);
 
   // 技术栈卡片样式 - 简洁背景
   const techStackCardStyle = useMemo(() => ({
@@ -233,11 +258,14 @@ export default function AboutPage() {
           <div className="p-8 md:p-10 md:pt-8">
             {/* 标语区域 */}
             <div className="text-center mb-12">
-              <div 
-                className="text-3xl md:text-4xl lg:text-5xl font-semibold max-w-4xl mx-auto relative z-20 py-3 bg-clip-text text-transparent transition-all duration-500"
-                style={sloganGradientStyle}
-              >
-                {BeforeAnimationText}<Cover>{AnimationText}</Cover>
+              <div className="text-3xl md:text-4xl lg:text-5xl font-semibold max-w-4xl mx-auto relative z-20 py-3">
+                <span 
+                  className="bg-clip-text text-transparent transition-all duration-500"
+                  style={beforeTextGradientStyle}
+                >
+                  {BeforeAnimationText}
+                </span>
+                <Cover>{AnimationText}</Cover>
               </div>
               <div className={`${isBorder ? 'border border-black/[0.2] dark:border-white/[0.2]' : ''} flex flex-col items-start max-w-sm mx-auto p-4 relative h-[30rem]`}>
                 {isBorder && <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black" />}

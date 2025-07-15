@@ -1,6 +1,14 @@
 export const title = "关于我"; //主标题
 export const BeforeAnimationText = "持续 "; //在动画字前面的字
 export const AnimationText = "进步"; //动画字
+
+/**
+ * 控制 BeforeAnimationText 的颜色效果
+ * true: 彩虹渐变色
+ * false: 主题色渐变
+ */
+export const isRainbowGradient = true;
+
 /**
  * 头像配置，自动处理basePath
  * 需要存放在public文件夹中
@@ -8,7 +16,7 @@ export const AnimationText = "进步"; //动画字
 const AVATAR_FILENAME = "avatar.jpg";
 
 /**
- * 获取头像完整路径，正确处理basePath
+ * 获取头像完整路径，正确处理basePath(无需修改)
  * @returns 头像的完整路径
  */
 export const getAvatarPath = (): string => {
@@ -16,11 +24,8 @@ export const getAvatarPath = (): string => {
   return basePath ? `${basePath}/${AVATAR_FILENAME}` : `/${AVATAR_FILENAME}`;
 };
 
-// 向后兼容的导出，建议使用 getAvatarPath() 函数
-export const avatar = getAvatarPath();
-
 export const isBorder = true; //控制头像边框是否显示
-export const name = "XHY"; //名字
+export const name = "徐皓阳"; //名字
 export const slogan =
   "在技术的海洋中探索，在代码的世界里创造，用文字记录成长的足迹"; //个人介绍
 //https://simpleicons.org 图标配置 图云

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
 interface TocItem {
   id: string;
@@ -102,6 +103,15 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   const [isMobile, setIsMobile] = useState(true); // 默认为移动端，避免闪烁
   const [isCollapsed, setIsCollapsed] = useState(true); // 默认收起
   const headings = extractHeadings(content);
+  const { isBackgroundEnabled } = useBackgroundStyle('blog-detail');
+
+  // 毛玻璃样式函数
+  const getGlassStyle = (baseClasses: string) => {
+    if (isBackgroundEnabled) {
+      return `${baseClasses} backdrop-blur-md bg-card/80 supports-[backdrop-filter]:bg-card/60 border-border/50`;
+    }
+    return `bg-card ${baseClasses} border-border`;
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -143,7 +153,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
       {isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="fixed bottom-6 right-4 z-50 w-12 h-12 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center transition-all duration-200 hover:shadow-xl"
+          className={getGlassStyle("fixed bottom-6 right-4 z-50 w-12 h-12 rounded-full shadow-lg border flex items-center justify-center transition-all duration-200 hover:shadow-xl")}
         >
           <svg
             className="w-5 h-5 text-gray-600 dark:text-gray-300"
@@ -174,7 +184,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
         <div className="fixed right-24 z-40" style={{ top: '80px' }}>
           <button
             onClick={() => setIsCollapsed(false)}
-            className="p-2 rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors shadow-sm border border-gray-100 dark:border-gray-800"
+            className={getGlassStyle("p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors shadow-sm border")}
             title="展开目录"
           >
             <svg 
@@ -199,11 +209,11 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
           ${isMobile ? (
             `w-1/2 h-full right-0 ${
               isOpen ? 'translate-x-0' : 'translate-x-full'
-            } bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 shadow-sm`
+            } ${getGlassStyle("border-l shadow-sm")}`
           ) : (
             `w-64 right-20 ${
               isCollapsed ? 'translate-x-full' : 'translate-x-0'
-            } bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-100/50 dark:border-gray-800/50 shadow-sm rounded-lg`
+            } ${getGlassStyle("border shadow-sm rounded-lg")}`
           )}
         `}
         style={{ 

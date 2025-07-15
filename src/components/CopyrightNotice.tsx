@@ -53,22 +53,22 @@ export default function CopyrightNotice({
     <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
       {/* Reference 引用信息 */}
       {reference && reference.length > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
-          <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center">
+        <div className="mb-4 p-3 bg-primary/5 rounded-lg border-l-4 border-primary">
+          <h4 className="text-sm font-medium text-primary mb-2 flex items-center">
             📖 Reference
           </h4>
           
           <div className="space-y-2">
             {displayReferences?.map((ref, index) => (
               <div key={index} className="text-sm">
-                <span className="text-blue-700 dark:text-blue-300 font-medium mr-2">
+                <span className="text-primary font-medium mr-2">
                   {ref.description}:
                 </span>
                 <a 
                   href={ref.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline break-all transition-colors"
+                  className="text-primary hover:text-primary/80 underline break-all transition-colors"
                 >
                   {ref.link}
                 </a>
@@ -80,7 +80,7 @@ export default function CopyrightNotice({
           {shouldCollapse && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="mt-3 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-1 py-0.5"
+              className="mt-3 flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 rounded px-1 py-0.5"
             >
               {isExpanded ? (
                 <>
@@ -109,7 +109,7 @@ export default function CopyrightNotice({
                 href={licenseInfo.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors"
+                className="text-primary hover:text-primary/80 hover:underline transition-colors"
               >
                 {licenseInfo.name}
               </Link>
@@ -123,7 +123,7 @@ export default function CopyrightNotice({
             <span>本文链接：</span>
             <Link 
               href={articleUrl}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline ml-1 break-all transition-colors"
+              className="text-primary hover:text-primary/80 hover:underline ml-1 break-all transition-colors"
             >
               {articleUrl}
             </Link>

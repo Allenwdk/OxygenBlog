@@ -32,7 +32,17 @@ interface ClientBlogsPageProps {
 export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCategoryCollapsed, setIsCategoryCollapsed] = useState<boolean>(true);
-  const { containerStyle } = useBackgroundStyle('blogs');
+  const { containerStyle, isBackgroundEnabled } = useBackgroundStyle('blogs');
+  
+  /**
+   * 获取毛玻璃样式类名
+   */
+  const getGlassStyle = (baseStyle: string) => {
+    if (isBackgroundEnabled) {
+      return `${baseStyle} backdrop-blur-md bg-card/90 border-border shadow-lg supports-[backdrop-filter]:bg-card/75`;
+    }
+    return `bg-card ${baseStyle} border-border`;
+  };
   
   /**
    * 过滤博客文章
@@ -123,7 +133,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
         >
           <button
             onClick={() => setIsCategoryCollapsed(!isCategoryCollapsed)}
-            className="w-full bg-card rounded-lg shadow-md p-4 flex items-center justify-between text-foreground hover:bg-card/80 transition-colors border border-border"
+            className={getGlassStyle("w-full rounded-lg shadow-md p-4 flex items-center justify-between text-foreground hover:bg-card/90 transition-colors border")}
           >
             <span className="flex items-center gap-2">
               <span>📂</span>
@@ -151,7 +161,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="bg-card rounded-lg shadow-md mt-2 p-4 border border-border">
+            <div className={getGlassStyle("rounded-lg shadow-md mt-2 p-4 border")}>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {categories.map((category) => (
                    <button
@@ -179,7 +189,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="bg-card rounded-lg shadow-md p-6 sticky top-24 border border-border">
+            <div className={getGlassStyle("rounded-lg shadow-md p-6 sticky top-24 border")}>
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 📂 分类筛选
               </h3>
@@ -232,7 +242,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                     y: -5,
                     transition: { duration: 0.2 }
                   }}
-                  className="bg-card rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border border-border"
+                  className={getGlassStyle("rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border")}
                 >
                   <Link href={`/blogs/${encodeURIComponent(post.slug)}`}>
                     <div className="p-6">
