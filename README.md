@@ -1,5 +1,5 @@
 # Oxyegn Blog Platform
-本项目是一个基于 NEXT.js 制作的一个美观、配置方便、简洁的博客平台，目前为 V1.2 版本，后续会根据需求进行更新。
+本项目是一个基于 NEXT.js 制作的一个美观、配置方便、简洁的博客平台，目前为 V1.3 版本，后续会根据需求进行更新。
 
 ## 功能
 - 支持 Markdown 格式的博客文章
@@ -65,6 +65,31 @@ WebSetting.ts //网站配置
 ```
 每一个配置文件都为您写好了注释
 
+### 主题色配置
+项目内置了 10 种精心设计的主题色方案，支持自定义配置：
+
+**预设主题**：`blue`(蓝色)、`purple`(紫色)、`green`(绿色)、`orange`(橙色)、`red`(红色)、`cyan`(青色)、`pink`(粉色)、`gold`(金色)、`indigo`(靛蓝)、`emerald`(祖母绿)
+
+**快速切换**：在 `src/setting/WebSetting.ts` 中修改：
+```typescript
+// 切换到绿色主题
+export const themeColors = themePresets.green;
+
+// 自定义主题色
+export const themeColors = {
+  primary: "#your-primary-color",
+  secondary: "#your-secondary-color", 
+  accent: "#your-accent-color",
+};
+```
+
+**颜色用途**：
+- `primary`：主要按钮、重要文字强调
+- `secondary`：次要按钮、标题渐变  
+- `accent`：装饰元素、动画高亮
+
+所有主题色都支持自动深色模式适配和平滑过渡效果。
+
 ## 如何部署
 - 支持一键部署到 Vercel
 - 支持一键部署到 GitHub Pages
@@ -84,7 +109,7 @@ V 1.1.0 2025.6.30
 2. 修复代码高亮问题
 3. 增加Reference和版权声明
 4. 性能优化
-5. 词云页面支持自定义图片
+5. 图云页面支持自定义图片
 6. markdown元数据兼容性提醒
 
 V 1.2.0 2025.6.30
@@ -116,6 +141,10 @@ V 1.2.4 2025.7.4
 V 1.3.0 2025.7.13
 1. 添加了主题色和背景图的功能！现在你可以在网站里配置你喜欢的主题色(可以持久化),也可以在Websetting文件里配置你喜欢的背景图！
 2. 修复了博客文章里列表和行内代码不能换行的问题
+
+V 1.3.1 2025.7.15
+1. 更新了主题色配置
+2. 优化了暗黑模式下的页面显示
 
 
 # 感谢您的使用，在使用过程中遇到任何问题可以提出Issues或联系开发者，助力平台变得更好

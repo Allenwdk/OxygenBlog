@@ -54,10 +54,6 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
     }
   };
 
-  /**
-   * 卡片动画配置 - 已内联到组件中
-   */
-
   // 如果没有任何博客数据，显示空页面提示
   if (initialPosts.length === 0) {
     return (
@@ -87,12 +83,12 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
               <h2 className="text-2xl font-semibold text-foreground mb-4">
                 暂无博客文章
               </h2>
-              <p className="text-secondary mb-8">
+              <p className="text-muted-foreground mb-8">
                 还没有发布任何博客文章，请稍后再来查看。
               </p>
               <Link 
                 href="/"
-                className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
               >
                 返回首页
               </Link>
@@ -127,19 +123,19 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
         >
           <button
             onClick={() => setIsCategoryCollapsed(!isCategoryCollapsed)}
-            className="w-full bg-background rounded-lg shadow-md p-4 flex items-center justify-between text-foreground hover:bg-background/80 transition-colors border border-gray-200 dark:border-gray-700"
+            className="w-full bg-card rounded-lg shadow-md p-4 flex items-center justify-between text-foreground hover:bg-card/80 transition-colors border border-border"
           >
             <span className="flex items-center gap-2">
               <span>📂</span>
               <span className="font-medium">分类筛选</span>
-              <span className="text-sm text-secondary">
+              <span className="text-sm text-muted-foreground">
                 ({selectedCategory === 'all' ? '全部' : selectedCategory})
               </span>
             </span>
             <motion.span
               animate={{ rotate: isCategoryCollapsed ? 0 : 180 }}
               transition={{ duration: 0.2 }}
-              className="text-secondary"
+              className="text-muted-foreground"
             >
               ▼
             </motion.span>
@@ -155,7 +151,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="bg-background rounded-lg shadow-md mt-2 p-4 border border-gray-200 dark:border-gray-700">
+            <div className="bg-card rounded-lg shadow-md mt-2 p-4 border border-border">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {categories.map((category) => (
                    <button
@@ -164,7 +160,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                      className={`px-3 py-2 rounded-md text-sm transition-colors ${
                        selectedCategory === category
                          ? 'bg-primary/10 text-primary border border-primary/20'
-                         : 'text-gray-600 dark:text-gray-400 hover:bg-primary/5 hover:text-primary'
+                         : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
                      }`}
                    >
                      {category === 'all' ? '全部' : category}
@@ -183,7 +179,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="bg-background rounded-lg shadow-md p-6 sticky top-24 border border-gray-200 dark:border-gray-700">
+            <div className="bg-card rounded-lg shadow-md p-6 sticky top-24 border border-border">
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 📂 分类筛选
               </h3>
@@ -195,7 +191,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                     className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
                       selectedCategory === category
                         ? 'bg-primary/10 text-primary border border-primary/20'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-primary/5 hover:text-primary'
+                        : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
                     }`}
                   >
                     {category === 'all' ? '全部' : category}
@@ -236,7 +232,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                     y: -5,
                     transition: { duration: 0.2 }
                   }}
-                  className="bg-background rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border border-gray-200 dark:border-gray-700"
+                  className="bg-card rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border border-border"
                 >
                   <Link href={`/blogs/${encodeURIComponent(post.slug)}`}>
                     <div className="p-6">
@@ -244,7 +240,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                         <span className="bg-primary/10 text-primary px-2 py-1 rounded text-sm font-medium border border-primary/20">
                           {post.category}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           预计阅读时间 {post.readTime} 分钟
                         </span>
                       </div>
@@ -253,19 +249,19 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                         {post.title}
                       </h2>
                       
-                      <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                      <p className="text-muted-foreground mb-4 line-clamp-3">
                         {post.excerpt}
                       </p>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500 dark:text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {post.date}
                         </span>
                         <div className="flex flex-wrap gap-1">
                           {post.tags.slice(0, 2).map((tag) => (
                             <span
                               key={tag}
-                              className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs rounded border border-gray-200 dark:border-gray-700"
+                              className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded border border-border"
                             >
                               {tag}
                             </span>
@@ -280,7 +276,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             
             {filteredPosts.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-secondary text-lg">
+                <p className="text-muted-foreground text-lg">
                   暂无该分类下的文章
                 </p>
               </div>

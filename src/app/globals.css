@@ -42,6 +42,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --animate-meteor: meteor 5s linear infinite;
+  --animate-gradient-shift: gradientShift 6s ease-in-out infinite;
   @keyframes meteor {
   0% {
     transform: rotate(var(--angle)) translateX(0);
@@ -53,6 +54,14 @@
   100% {
     transform: rotate(var(--angle)) translateX(-500px);
     opacity: 0;
+    }
+  }
+  @keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+    }
+  50% {
+    background-position: 100% 50%;
     }
   }
 }
@@ -104,11 +113,11 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: #1f2735;
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: #2a3441;
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: #2a3441;
   --popover-foreground: oklch(0.985 0 0);
   
   /* 主题色变量 - 深色模式默认使用蓝色主题 */
@@ -123,7 +132,7 @@
   --primary-foreground: var(--color-primary-foreground);
   --secondary: var(--color-secondary);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
+  --muted: #2a3441;
   --muted-foreground: oklch(0.708 0 0);
   --accent: var(--color-accent);
   --accent-foreground: var(--color-accent-foreground);
@@ -138,11 +147,11 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
+  --sidebar: #2a3441;
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: var(--color-primary);
   --sidebar-primary-foreground: var(--color-primary-foreground);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent: #2a3441;
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
@@ -153,8 +162,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply text-foreground;
-    /* 移除 bg-background 以允许背景图片显示 */
+    @apply text-foreground bg-background;
   }
 }
 
