@@ -10,7 +10,7 @@ import { motion } from 'motion/react';
 import Image from 'next/image';
 import MailIcon from '@/assets/mail.svg';
 import GitHubIcon from '@/assets/github.svg';
-import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, mainContactMeDescription, subContactMeDescription, mail, github, isBorder, isRainbowGradient}
+import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, aboutMeP3, mainContactMeDescription, subContactMeDescription, mail, github, isBorder, isRainbowGradient}
 from '@/setting/AboutSetting';
 import { useTheme } from 'next-themes';
 import { useMemo, useEffect, useState } from 'react';
@@ -63,7 +63,7 @@ export default function AboutPage() {
       background: `${themeOverlay}, ${baseGradient}`
     };
   }, [primaryColor, secondaryColor, isDark, isBackgroundEnabled]);
-
+//个人介绍
 
   // BeforeAnimationText 样式 - 根据配置选择彩虹渐变或主题色渐变
   const beforeTextGradientStyle = useMemo(() => {
@@ -327,6 +327,10 @@ export default function AboutPage() {
                 <br />
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   {aboutMeP2}
+                </p>
+                <br />
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {aboutMeP3}
                 </p>
               </div>
             </div>

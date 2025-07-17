@@ -1,20 +1,15 @@
+//你想配置的分类类别
 export const categories = ["all", "技术", "前端", "开发", "生活"];
-//以下两个配置项如无需求，无须改动
-/**
- * CC 协议类型
- */
+// CC协议类型(无需改动)
 export type CCLicenseType =
-  | "CC BY"
-  | "CC BY-SA"
-  | "CC BY-NC"
-  | "CC BY-NC-SA"
-  | "CC BY-ND"
-  | "CC BY-NC-ND";
-
-/**
- * 博客转载声明配置类型，无需修改
- */
-export interface BlogCopyrightConfig {
+  | "CC BY" //允许他人分享和改编作品，甚至商业使用
+  | "CC BY-SA" //允许他人分享和改编作品，包括商业用途，必须以相同的许可证发布衍生作品（开源精神）
+  | "CC BY-NC" //允许他人分享和改编作品，禁止商业用途
+  | "CC BY-NC-SA" //允许他人分享和改编作品，禁止商业用途，必须以相同的许可证发布衍生作品
+  | "CC BY-ND" //允许他人分享和复制作品，不能修改作品，可以商业使用
+  | "CC BY-NC-ND"; //只能下载和分享作品，不能修改，不能用于商业用途
+//转载声名接口配置(无需改动)
+interface BlogCopyrightConfig {
   /** 是否显示转载声明 */
   showCopyright: boolean;
   /** 默认 CC 协议类型 */
@@ -26,23 +21,19 @@ export interface BlogCopyrightConfig {
   /** 网站域名 */
   siteUrl: string;
 }
-
-/**
- * 默认转载声明配置
- */
+//默认转载声名配置
 export const copyrightConfig: BlogCopyrightConfig = {
   showCopyright: true, //是否显示版权声明
   defaultLicense: "CC BY-NC-SA", //默认版权声明协议
   author: "XuHaoYang", //作者
   siteName: "个人博客", //你网站的名称
-  siteUrl: "https://xuhaoyang.top", //这里填写你的域名
+  siteUrl: "https://xuhaoyang.top", //这里填写你的域名(当前网站)
 };
 
-export const EndWord = "感谢阅读！"; //每一篇博客结尾的话
+//每一篇博客结尾的话
+export const EndWord = "感谢阅读！";
 
-/**
- * 获取 CC 协议信息，无需改动
- */
+//获取cc协议信息的函数(无需改动)
 export const getCCLicenseInfo = (type: CCLicenseType) => {
   const licenseMap = {
     "CC BY": {

@@ -1,12 +1,9 @@
 name: Deploy to GitHub Pages
 
-# 触发条件：推送到main分支、PR合并到main分支或手动触发
+# 触发条件：推送到main分支或手动触发
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-    types: [ closed ]
   # 允许手动触发
   workflow_dispatch:
 
@@ -25,8 +22,6 @@ jobs:
   # 构建任务
   build:
     runs-on: ubuntu-latest
-    # 在推送到main分支、PR合并到main分支或手动触发时运行
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
