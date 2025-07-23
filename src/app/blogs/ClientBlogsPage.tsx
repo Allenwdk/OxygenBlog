@@ -2,9 +2,10 @@
 
 import { motion } from 'motion/react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { categories } from '@/setting/blogSetting';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
+import Pagination from '@/components/Pagination';
 
 
 /**
@@ -32,7 +33,11 @@ interface ClientBlogsPageProps {
 export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCategoryCollapsed, setIsCategoryCollapsed] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const { containerStyle, isBackgroundEnabled } = useBackgroundStyle('blogs');
+  
+  // 分页配置
+  const POSTS_PER_PAGE = 6; // 每页显示的文章数量
   
   /**
    * 获取毛玻璃样式类名
@@ -50,6 +55,40 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
   const filteredPosts = selectedCategory === 'all' 
     ? initialPosts 
     : initialPosts.filter(post => post.category === selectedCategory);
+
+  /**
+   * 分页计算
+   */
+  const paginationData = useMemo(() => {
+    const totalPosts = filteredPosts.length;
+    const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+    const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+    const endIndex = startIndex + POSTS_PER_PAGE;
+    const currentPosts = filteredPosts.slice(startIndex, endIndex);
+    
+    return {
+      currentPosts,
+      totalPages,
+      totalPosts
+    };
+  }, [filteredPosts, currentPage, POSTS_PER_PAGE]);
+
+  /**
+   * 处理分类变化
+   */
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1); // 切换分类时重置到第一页
+  };
+
+  /**
+   * 处理页码变化
+   */
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // 滚动到页面顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   
   /**
    * 容器动画配置
@@ -166,7 +205,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                 {categories.map((category) => (
                    <button
                      key={category}
-                     onClick={() => setSelectedCategory(category)}
+                     onClick={() => handleCategoryChange(category)}
                      className={`px-3 py-2 rounded-md text-sm transition-colors ${
                        selectedCategory === category
                          ? 'bg-primary/10 text-primary border border-primary/20'
@@ -197,7 +236,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                 {categories.map((category) => (
                   <button
                     key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => handleCategoryChange(category)}
                     className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
                       selectedCategory === category
                         ? 'bg-primary/10 text-primary border border-primary/20'
@@ -218,8 +257,20 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             initial="hidden"
             animate="visible"
           >
+            {/* 文章统计信息 */}
+            <div className="mb-6">
+              <p className="text-sm text-muted-foreground">
+                {selectedCategory === 'all' ? '全部' : selectedCategory} 分类下共有 {paginationData.totalPosts} 篇文章
+                {paginationData.totalPages > 1 && (
+                  <span className="ml-2">
+                    (第 {currentPage} 页，共 {paginationData.totalPages} 页)
+                  </span>
+                )}
+              </p>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
-              {filteredPosts.map((post) => (
+              {paginationData.currentPosts.map((post) => (
                 <motion.article
                   key={post.id}
                   variants={{
@@ -284,12 +335,21 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
               ))}
             </div>
             
-            {filteredPosts.length === 0 && (
+            {paginationData.currentPosts.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">
                   暂无该分类下的文章
                 </p>
               </div>
+            )}
+
+            {/* 翻页器 */}
+            {paginationData.totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={paginationData.totalPages}
+                onPageChange={handlePageChange}
+              />
             )}
           </motion.main>
         </div>
