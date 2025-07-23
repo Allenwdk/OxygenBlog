@@ -1,6 +1,6 @@
 ---
 title: Next.js 15 新特性详解
-date: 2024-01-15
+date: 2021-01-15
 category: 技术
 tags: [Next.js, React, Web开发]
 readTime: 8

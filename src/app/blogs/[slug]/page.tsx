@@ -3,7 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { ClientBlogDetail } from '@/app/blogs//[slug]/ClientBlogDetail';
 import 'highlight.js/styles/github-dark.css';
-import { formatBlogDate } from '@/lib/utils';
+import { formatBlogDate, calculateReadingTime } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 
 /**
@@ -178,12 +178,15 @@ async function getBlogContent(slug: string): Promise<BlogPost | null> {
     const fileName = path.basename(filePath, '.md');
     const title = frontMatter.title || fileName;
     
+    // 自动计算阅读时长，如果元数据中已有readTime则优先使用
+    const readTime = frontMatter.readTime || calculateReadingTime(content);
+    
     return {
       title: title,
       date: formatBlogDate(frontMatter.date),
       category: frontMatter.category || '其他',
       tags: frontMatter.tags || [],
-      readTime: frontMatter.readTime || 5,
+      readTime: readTime,
       excerpt: frontMatter.excerpt || '',
       content: content,
       slug: slug,

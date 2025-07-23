@@ -4,7 +4,6 @@ excerpt: "探讨现代 UI/UX 设计的核心原则和最佳实践"
 date: "2024-01-20"
 category: "技术"
 tags: ["UI", "UX", "设计原则"]
-readTime: 6
 ---
 
 # UI/UX 设计原则

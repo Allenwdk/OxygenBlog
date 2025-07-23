@@ -1,6 +1,6 @@
 ---
 title: TypeScript 5.0 实战指南
-date: 2024-01-10
+date: 2019-01-10
 category: 技术
 tags: [TypeScript, JavaScript, 编程]
 readTime: 12

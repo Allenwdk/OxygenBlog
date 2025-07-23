@@ -1,7 +1,7 @@
 ---
 title: "React Hooks 深度解析"
 excerpt: "深入了解 React Hooks 的原理和最佳实践"
-date: "2024-01-15"
+date: "2022-01-15"
 category: "前端"
 tags: ["React", "Hooks", "JavaScript"]
 readTime: 8
