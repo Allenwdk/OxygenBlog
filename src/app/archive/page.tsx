@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { formatBlogDate, calculateReadingTime } from '@/lib/utils';
-import ClientBlogsPage from './ClientBlogsPage';
+import { formatBlogDate } from '@/lib/utils';
+import ClientArchivePage from '@/components/archive/ClientArchivePage';
 
 /**
  * 博客文章接口
@@ -16,6 +16,7 @@ interface BlogPost {
   tags: string[];
   slug: string;
   readTime: number;
+  year: number; // 添加年份字段用于归档
 }
 
 /**
@@ -71,24 +72,16 @@ function scanMarkdownFiles(dir: string, baseDir: string): Array<{filePath: strin
 }
 
 /**
- * 获取所有博客文章
+ * 获取所有博客文章并按年份归档
  * 
- * 支持深层嵌套的单文件模式：
- * - 递归扫描 /content/blogs 目录下的所有 .md 文件
- * - 支持任意深度的文件夹嵌套
- * - 自动生成基于路径的 slug
- * - 支持外部图片引用
- * 
- * 标题处理逻辑：
- * - 如果元数据中有 title，使用元数据中的 title
- * - 如果没有 title，使用文件名（去除 .md 扩展名）作为标题
+ * @returns 按年份归档的博客文章
  */
-function getAllBlogs(): BlogPost[] {
+function getArchivedBlogs(): { [year: number]: BlogPost[] } {
   try {
     const contentDir = path.join(process.cwd(), 'src/content/blogs');
     
     if (!fs.existsSync(contentDir)) {
-      return [];
+      return {};
     }
     
     // 递归扫描所有 .md 文件
@@ -105,11 +98,10 @@ function getAllBlogs(): BlogPost[] {
         const fileName = path.basename(filePath, '.md');
         const title = frontMatter.title || fileName;
         
-        // 获取文章内容用于计算阅读时长
-        const { content } = matter(fileContent);
-        
-        // 自动计算阅读时长，如果元数据中已有readTime则优先使用
-        const readTime = frontMatter.readTime || calculateReadingTime(content);
+        // 解析日期，获取年份
+        const dateStr = frontMatter.date || '';
+        const date = dateStr ? new Date(dateStr) : new Date();
+        const year = date.getFullYear();
         
         blogPosts.push({
           id: slug,
@@ -119,7 +111,8 @@ function getAllBlogs(): BlogPost[] {
           category: frontMatter.category || '其他',
           tags: frontMatter.tags || [],
           slug: slug,
-          readTime: readTime
+          readTime: frontMatter.readTime || 5,
+          year: year
         });
       } catch (error) {
         console.error(`Error reading blog file ${relativePath}:`, error);
@@ -127,20 +120,32 @@ function getAllBlogs(): BlogPost[] {
     });
     
     // 按日期排序（最新的在前）
-    return blogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sortedPosts = blogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    // 按年份归档
+    const archivedPosts: { [year: number]: BlogPost[] } = {};
+    
+    sortedPosts.forEach(post => {
+      if (!archivedPosts[post.year]) {
+        archivedPosts[post.year] = [];
+      }
+      archivedPosts[post.year].push(post);
+    });
+    
+    return archivedPosts;
   } catch (error) {
-    console.error('Error getting all blogs:', error);
-    return [];
+    console.error('Error getting archived blogs:', error);
+    return {};
   }
 }
 
 /**
- * 博客列表页面（服务端组件）
- * 获取博客数据并传递给客户端组件
+ * 归档页面组件
+ * 获取按年份归档的博客文章数据
  */
-export default async function BlogsPage() {
-  // 获取博客数据
-  const blogPosts = getAllBlogs();
+export default async function ArchivePage() {
+  // 获取归档博客数据
+  const archivedPosts = getArchivedBlogs();
   
-  return <ClientBlogsPage initialPosts={blogPosts} />;
+  return <ClientArchivePage archivedPosts={archivedPosts} />;
 }

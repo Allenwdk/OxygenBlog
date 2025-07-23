@@ -1,9 +1,8 @@
 ---
 title: 示例文章
-date: 2024-01-15
+date: 2022-01-15
 category: 技术
 tags: ["Markdown", "渲染", "展示"]
-readTime: 8
 excerpt: 展示博客平台强大的 Markdown 渲染能力，包括代码高亮、数学公式、表格等丰富功能。
 ---
 
