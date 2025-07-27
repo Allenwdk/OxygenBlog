@@ -31,8 +31,7 @@ export default function Footer() {
                   height={14}
                   className="inline-block"
                 />
-                <span className="hidden sm:inline">{policeBeian}</span>
-                <span className="sm:hidden">公安备案</span>
+                <span>{policeBeian}</span>
               </Link>
               {ICP && <span className="mx-1">|</span>}
             </>
@@ -63,6 +62,19 @@ export default function Footer() {
               <span>{aWord}</span>
             </>
           )}
+          
+          {/* OxygenBlogPlatform 驱动链接 */}
+          <span className="mx-1">·</span>
+          <span>由</span>
+          <Link
+            href="https://github.com/seasalt-haiyan/OxygenBlogPlatform"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground/70 hover:text-primary transition-colors duration-200 underline-offset-4 hover:underline"
+          >
+            OxygenBlogPlatform
+          </Link>
+          <span>驱动</span>
         </p>
       </div>
     </footer>

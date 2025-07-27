@@ -122,9 +122,28 @@ export default function ClientArchivePage({ archivedPosts }: ClientArchivePagePr
           {timelineData.length > 0 ? (
             <Timeline data={timelineData} />
           ) : (
-            <div className="text-center py-20">
-              <h3 className="text-xl font-medium text-muted-foreground">暂无文章</h3>
-            </div>
+            <motion.div 
+              className="text-center py-20"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="max-w-md mx-auto">
+                <div className="text-6xl mb-6">📄</div>
+                <h2 className="text-2xl font-semibold text-foreground mb-4">
+                  暂无博客文章
+                </h2>
+                <p className="text-muted-foreground mb-8">
+                  还没有发布任何博客文章，请稍后再来查看。
+                </p>
+                <Link 
+                  href="/"
+                  className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+                >
+                  返回首页
+                </Link>
+              </div>
+            </motion.div>
           )}
       </div>
     </div>

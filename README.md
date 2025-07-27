@@ -1,5 +1,5 @@
-# Oxyegn Blog Platform
-本项目是一个基于 NEXT.js 制作的一个美观、配置方便、简洁的博客平台，目前为 V1.3 版本，后续会根据需求进行更新。
+# Oxygen Blog Platform
+本项目是一个基于 Next.js 开发的美观、配置方便、简洁的博客平台，目前为 V1.4 版本，后续会根据需求进行更新。
 
 ## 功能
 - 支持 Markdown 格式的博客文章
@@ -30,18 +30,18 @@ yarn dev
 pnpm dev
 ```
 ## 博客存放位置
-博客存放在`src/content/blogs`文件夹中，需要遵循一定的规范
-markdown文件元数据规范如下
+博客存放在 `src/content/blogs` 文件夹中，需要遵循一定的规范。
+Markdown 文件元数据规范如下：
 
 ```text
 ---
-title: 使用Reference对象数组的示例文章 //名称，不填写则为文件名
-date: 2023-11-20 //时间
-category: 技术 //分类
-tags: [React, Next.js, TypeScript] //标签。目前还不支持通过标签筛选
-readTime: 5 //阅读时间（选填）
-excerpt: 这是一篇展示如何使用Reference对象数组格式的示例文章 //摘要，显示在卡片上
-reference: [ //博文参考来源，可不配置
+title: 使用Reference对象数组的示例文章 // 标题，不填写则为文件名
+date: 2023-11-20 // 发布时间
+category: 技术 // 分类
+tags: [React, Next.js, TypeScript] // 标签，目前还不支持通过标签筛选
+readTime: 5 // 阅读时间（选填）
+excerpt: 这是一篇展示如何使用Reference对象数组格式的示例文章 // 摘要，显示在卡片上
+reference: [ // 博文参考来源，可不配置
   { description: "Next.js官方文档", link: "https://nextjs.org/docs" },
   { description: "React官方文档", link: "https://reactjs.org/docs/getting-started.html" },
   { description: "TypeScript官方文档", link: "https://www.typescriptlang.org/docs/" },
@@ -51,19 +51,19 @@ reference: [ //博文参考来源，可不配置
 ---
 ```
 
-- markdown文件内部图片如果存放在本地，需要放在**public**文件夹下，然后通过md语法引用路径
-- 实例：
+- Markdown 文件内部图片如果存放在本地，需要放在 **public** 文件夹下，然后通过 Markdown 语法引用路径
+
 ## 配置
-平台配置存放在setting文件夹中，即改即用
+平台配置存放在 setting 文件夹中，即改即用：
 ```text
-AboutSetting.ts //关于页面的配置
-blogSetting.ts //博客页面的配置
-FooterSetting //网站页脚配置
-HomeSetting //主页配置
-NavigationSetting //导航栏配置
-WebSetting.ts //网站配置
+AboutSetting.ts // 关于页面的配置
+blogSetting.ts // 博客页面的配置
+FooterSetting.ts // 网站页脚配置
+HomeSetting.ts // 主页配置
+NavigationSetting.ts // 导航栏配置
+WebSetting.ts // 网站配置
 ```
-每一个配置文件都为您写好了注释
+每一个配置文件都为您写好了注释。
 
 ### 主题色配置
 项目内置了 10 种精心设计的主题色方案，支持自定义配置：
@@ -93,10 +93,10 @@ export const themeColors = {
 ## 如何部署
 - 支持一键部署到 Vercel
 - 支持一键部署到 GitHub Pages
-  1. Fork本仓库
-  2. 在Setting里面打开Page，并且选择Github Action 方式配置
-  3. 打开 Action ，选择 Deploy to Github Page， 点击 Run WorkFlow
-  4. 等待部署完毕，点击Github域名进入您的网站
+  1. Fork 本仓库
+  2. 在 Settings 里面打开 Pages，并且选择 GitHub Actions 方式配置
+  3. 打开 Actions，选择 Deploy to GitHub Pages，点击 Run Workflow
+  4. 等待部署完毕，点击 GitHub 域名进入您的网站
 
 
 ## 更新日志
@@ -125,21 +125,21 @@ V 1.2.1 2025.7.1
 4. 更新next配置以支持静态导出和Unicode路由
 
 V 1.2.2 2025.7.1
-1. 修复了静态页面样式丢失的bug
-2. 现在已经支持GitHub Action 一键部署到Github Page！
+1. 修复了静态页面样式丢失的 bug
+2. 现在已经支持 GitHub Actions 一键部署到 GitHub Pages！
 
 V 1.2.3 2025.7.1
-1. 修复了Github Action部署时没有仓库名时候的bug
+1. 修复了 GitHub Actions 部署时没有仓库名时的 bug
 
 V 1.2.4 2025.7.4
-1. 修复了非Github根域名部署的情况下头像丢失的问题
-2. 添加basePath支持以适配GitHub Pages部署
-3. 添加环境变量NEXT_PUBLIC_BASE_PATH配置，用于处理GitHub Pages部署时的路径问题
-4. 修改头像和图片组件以自动处理basePath
-5. 优化CI工作流触发条件
+1. 修复了非 GitHub 根域名部署的情况下头像丢失的问题
+2. 添加 basePath 支持以适配 GitHub Pages 部署
+3. 添加环境变量 NEXT_PUBLIC_BASE_PATH 配置，用于处理 GitHub Pages 部署时的路径问题
+4. 修改头像和图片组件以自动处理 basePath
+5. 优化 CI 工作流触发条件
 
 V 1.3.0 2025.7.13
-1. 添加了主题色和背景图的功能！现在你可以在 WebSetting 里配置你喜欢的主题色,也可以 在WebSetting 文件里配置你喜欢的背景图！
+1. 添加了主题色和背景图的功能！现在你可以在 WebSetting 里配置你喜欢的主题色，也可以在 WebSetting 文件里配置你喜欢的背景图！
 2. 修复了博客文章里列表和行内代码不能换行的问题
 
 V 1.3.1 2025.7.15
@@ -155,17 +155,38 @@ V 1.3.2 2025.7.16
 6. 暗色模式下背景增加了暗色遮罩
 
 V 1.3.3 2025.7.17
-1. 优化了setting的提示词，现在更直观更易懂
+1. 优化了 setting 的提示词，现在更直观更易懂
 2. 精简代码，保持依赖的整洁
 3. 在关于我页面的自我介绍添加了第三段
-4. 修复 Github Action 重复构建问题
+4. 修复 GitHub Actions 重复构建问题
 
 V 1.4.0 2025.7.23
 1. 添加了归档功能，现在历史博客可以通过时间归档了
-2. 新增了自动计算阅读时间功能，如果您不在博客元数据中定义readTime，那么平台会自动计算阅读时间
+2. 新增了自动计算阅读时间功能，如果您不在博客元数据中定义 readTime，那么平台会自动计算阅读时间
 
 V 1.4.1 2025.7.26
 1. 添加了公安备案号的图片显示与超链接跳转
 
+V 1.4.2 2025.7.27
+1. 添加 LICENSE 文件
+2. 优化归档页面的空状态 UI
+3. 修复背景图片路径文件
+4. 在页脚添加项目驱动链接
 
-# 感谢您的使用，在使用过程中遇到任何问题可以提出Issues或联系开发者，助力平台变得更好
+## 开源协议
+
+本项目基于 [MIT License](./LICENSE) 开源协议发布。
+
+MIT License 允许您：
+- ✅ 商业使用
+- ✅ 修改代码
+- ✅ 分发代码
+- ✅ 私人使用
+
+但需要：
+- 📋 保留版权声明
+- 📋 保留许可证声明
+
+详细条款请查看 [LICENSE](./LICENSE) 文件。
+
+# 感谢您的使用，在使用过程中遇到任何问题可以提出 Issues 或联系开发者，助力平台变得更好！
