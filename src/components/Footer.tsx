@@ -8,6 +8,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 /**
+ * 获取公安备案图片路径，处理 basePath
+ */
+function getGonganImagePath(): string {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  return basePath ? `${basePath}/gongan.png` : '/gongan.png';
+}
+
+/**
  * 页脚组件 - 毛玻璃透明效果
  */
 export default function Footer() {
@@ -25,7 +33,7 @@ export default function Footer() {
                 className="flex items-center gap-1 text-muted-foreground/70 hover:text-primary transition-colors duration-200 underline-offset-4 hover:underline"
               >
                 <Image
-                  src="/gongan.png"
+                  src={getGonganImagePath()}
                   alt="公安备案"
                   width={14}
                   height={14}
