@@ -38,20 +38,19 @@ reference: [
 ### Fork OxygenBlogPlatform
 
 1. 打开[OxygenBlogPlatform项目主页](https://github.com/seasalt-haiyan/OxygenBlogPlatform)
-2. 点击**Fork**，在接下来的界面中点击**Create fork**
-   ![Fork](Fork.png)
+2. 点击**Fork**![Fork](https://github.com/Allenwdk/OxygenBlog/blob/main/src/content/blogs/tech/Fork.png)在接下来的界面中点击**Create fork**
 3. 点击后将跳转到你自己的fork项目
 
 ## 开始部署
 
 ### 初次部署OxygenBlog
 
-1. 点击**Settings**![Settings](Settings.png)选择**Pages**![Pages](Pages.png)
+1. 点击**Settings**![Settings](Settings.png)选择**Pages**![Pages](https://github.com/Allenwdk/OxygenBlog/blob/main/src/content/blogs/tech/Pages.png)
 2. 将**Source**改为**Github Actions**
-3. 在上方选择**Actions**![Actions](Actions.png)
+3. 在上方选择**Actions**![Actions](https://github.com/Allenwdk/OxygenBlog/blob/main/src/content/blogs/tech/Actions.png)
 4. 选择**I understand my workflows, go ahead and enable them**
-5. 在左侧**Actions**选项栏中选择**Deploy to GitHub Pages**![act1](act1.png)
-6. 在右侧单击**Run workflow**，在弹出菜单中选择**Run workflow**，刷新界面![act2](act2)
+5. 在左侧**Actions**选项栏中选择**Deploy to GitHub Pages**![act1](https://github.com/Allenwdk/OxygenBlog/blob/main/src/content/blogs/tech/act1.png)
+6. 在右侧单击**Run workflow**，在弹出菜单中选择**Run workflow**，刷新界面![act2](https://github.com/Allenwdk/OxygenBlog/blob/main/src/content/blogs/tech/act2.png)
 7. ~~坐合放宽~~，等待约1min15s后刷新界面看到对勾即可完成部署
 
 ### 查看你的成果
