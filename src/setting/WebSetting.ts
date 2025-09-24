@@ -3,7 +3,7 @@ export const webTitle = "0xygen Blog"; // 网站标题：浏览器显示
 export const webDescription = "个人博客"; // 网站描述：浏览器显示
 
 //网站背景图配置
-export const backgroundImage = "/test-background.png"; // 网站整体背景图片路径：public目录下，以/开头确保路径正确
+export const backgroundImage = "/Ayaka.png"; // 网站整体背景图片路径：public目录下，以/开头确保路径正确
 export const enableBackground = true; // 是否启用背景图片
 
 //背景图片显示模式配置
@@ -69,7 +69,7 @@ const themePresets = {
 } as const;
 
 //当前使用的主题色方案，你也可以选择自己的，修改themePresets.后面的值
-export const themeColors = themePresets.purple;
+export const themeColors = themePresets.cyan;
 
 //应用主题色函数(不用动)
 export const applyThemeColors = (isDark: boolean = false) => {
