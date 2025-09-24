@@ -11,6 +11,15 @@ reference: [ // 博文参考来源，可不配置
 ---
 # 配置流程
 
+## （可选）安装加速器
+
+1. 使用浏览器打开https://steampp.net/download
+2. 选择下载Windows版
+3. 推荐使用蓝奏云下载
+4. 安装
+5. 打开安装的Watt Toolkit，在网络加速选项中勾选Github
+6. 选择一键加速
+
 ## 注册/登录GitHub账户
 
 ### 注册GitHub账户
