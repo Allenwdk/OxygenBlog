@@ -1,5 +1,5 @@
 //主标题
-export const mainTitle = "0xygen Blog";
+export const mainTitle = "Allenwdk's Blog";
 //主题色装饰字
 export const mainTitleBlueDecoration = ".";
 //副标题
@@ -8,6 +8,6 @@ export const subTitle = "A Front-End ";
 export const subTitleBlueDecoration = "Developer";
 //打字机动画轮播数组
 export const TypewriterTexts = [
-  "悟以往之不谏，知来者之可追",
-  "JavaScript是最好的语言!",
+  "但行好事，莫问前程",
+  "我是神里绫华的狗！",
 ];
