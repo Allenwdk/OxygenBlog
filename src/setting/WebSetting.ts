@@ -1,6 +1,6 @@
 //网站基础配置
-export const webTitle = "0xygen Blog"; // 网站标题：浏览器显示
-export const webDescription = "个人博客"; // 网站描述：浏览器显示
+export const webTitle = "Allenwdk's Blog"; // 网站标题：浏览器显示
+export const webDescription = "Allenwdk的部落格"; // 网站描述：浏览器显示
 
 //网站背景图配置
 export const backgroundImage = "/Ayaka.png"; // 网站整体背景图片路径：public目录下，以/开头确保路径正确
