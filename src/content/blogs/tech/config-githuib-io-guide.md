@@ -3,17 +3,16 @@ title: 使用GitHub Action配置Oxygen Blog
 date: 2025-9-24
 category: 技术
 tags: [Github]
-readTime: 
 excerpt: 这是一篇简要介绍如何使用GitHub Action配置个人blog的文章
-reference: [ // 博文参考来源，可不配置
+reference: [
   { description: "OxygenBlogPlatform官方Readmd", link: "https://github.com/seasalt-haiyan/OxygenBlogPlatform/blob/main/README.md" },
 ]
 ---
-# 配置流程
+# 使用GitHub Action配置Oxygen Blog
 
 ## （可选）安装加速器
 
-1. 使用浏览器打开https://steampp.net/download
+1. 使用浏览器打开[https://steampp.net/download]()
 2. 选择下载Windows版
 3. 推荐使用蓝奏云下载
 4. 安装
@@ -36,7 +35,7 @@ reference: [ // 博文参考来源，可不配置
 
 ## Fork OxygenBlogPlatform
 
-1. 打开项目主页https://github.com/seasalt-haiyan/OxygenBlogPlatform
+1. 打开项目主页[https://github.com/seasalt-haiyan/OxygenBlogPlatform](https://github.com/seasalt-haiyan/OxygenBlogPlatform)
 2. 点击Fork按钮，在接下来的界面中点击Create fork
 3. 点击后将跳转到你自己的fork项目
 
