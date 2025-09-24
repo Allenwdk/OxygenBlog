@@ -6,11 +6,7 @@ tags: [Github]
 readTime: 
 excerpt: 这是一篇简要介绍如何使用GitHub Action配置个人blog的文章
 reference: [ // 博文参考来源，可不配置
-  { description: "Next.js官方文档", link: "https://nextjs.org/docs" },
-  { description: "React官方文档", link: "https://reactjs.org/docs/getting-started.html" },
-  { description: "TypeScript官方文档", link: "https://www.typescriptlang.org/docs/" },
-  { description: "Tailwind CSS文档", link: "https://tailwindcss.com/docs" },
-  { description: "MDN Web文档", link: "https://developer.mozilla.org/zh-CN/" }
+  { description: "OxygenBlogPlatform官方Readmd", link: "https://github.com/seasalt-haiyan/OxygenBlogPlatform/blob/main/README.md" },
 ]
 ---
 # 配置流程
