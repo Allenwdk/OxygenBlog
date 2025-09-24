@@ -26,7 +26,7 @@ export default function Footer() {
           
           {/* 版权信息 */}
           <span className="flex items-center gap-1">
-            {(policeBeian || ICP) && <span className="mx-1">|</span>}
+            {<span className="mx-1">|</span>}
             <span>&copy; {year} {name}</span>
           </span>
           
