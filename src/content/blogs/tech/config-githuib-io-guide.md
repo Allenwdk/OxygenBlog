@@ -12,7 +12,7 @@ reference: [
 
 ## （可选）安装加速器
 
-1. 使用浏览器打开[https://steampp.net/download]()
+1. 使用浏览器打开[Watt Toolkit官网](https://steampp.net/download)
 2. 选择下载Windows版
 3. 推荐使用蓝奏云下载
 4. 安装
@@ -23,19 +23,19 @@ reference: [
 
 ### 注册GitHub账户
 
-1. 打开www.github.com
+1. 打开[Github](https://www.github.com)
 2. 点击Sign in，在接下来的界面中选择Create an account
 3. 输入你的邮箱、密码、用户名，选择你的国家，完成注册流程
 4. 注册完成后重新登陆
 
 ### 登录GitHub账户
 
-1. 打开www.github.com
+1. 打开[Github](https://www.github.com)
 2. 点击Sign in，输入用户名、密码，完成登录
 
 ## Fork OxygenBlogPlatform
 
-1. 打开项目主页[https://github.com/seasalt-haiyan/OxygenBlogPlatform](https://github.com/seasalt-haiyan/OxygenBlogPlatform)
+1. 打开[OxygenBlogPlatform项目主页](https://github.com/seasalt-haiyan/OxygenBlogPlatform)
 2. 点击Fork按钮，在接下来的界面中点击Create fork
 3. 点击后将跳转到你自己的fork项目
 
