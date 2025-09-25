@@ -5,7 +5,7 @@ category: 技术
 tags: [Github]
 excerpt: 这是一篇简要介绍如何使用GitHub Action配置个人blog的文章
 reference: [
-  { description: "OxygenBlogPlatform官方Readmd", link: "https://github.com/seasalt-haiyan/OxygenBlogPlatform/blob/main/README.md" },
+  { description: "OxygenBlogPlatform官方README", link: "https://github.com/seasalt-haiyan/OxygenBlogPlatform/blob/main/README.md" },
 ]
 ---
 # 使用GitHub Action配置Oxygen Blog
@@ -73,7 +73,7 @@ reference: [
 
 ### 修改界面文案
 
-#### 配置项简介（来自GitHub readme）
+#### 配置项简介（来自GitHub README）
 
 平台配置存放在 setting 文件夹中，即改即用：
 
