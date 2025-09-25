@@ -45,7 +45,7 @@ reference: [
 
 ### 初次部署OxygenBlog
 
-1. 点击**Settings**![Settings](Settings.png)选择**Pages**![Pages](https://raw.githubusercontent.com/Allenwdk/OxygenBlog/refs/heads/main/public/assets/Pages.png)
+1. 点击**Settings**![Settings](https://raw.githubusercontent.com/Allenwdk/OxygenBlog/refs/heads/main/public/assets/Settings.png)选择**Pages**![Pages](https://raw.githubusercontent.com/Allenwdk/OxygenBlog/refs/heads/main/public/assets/Pages.png)
 2. 将**Source**改为**Github Actions**
 3. 在上方选择**Actions**![Actions](https://raw.githubusercontent.com/Allenwdk/OxygenBlog/refs/heads/main/public/assets/Actions.png)
 4. 选择**I understand my workflows, go ahead and enable them**
