@@ -10,6 +10,7 @@ import { ClipboardIcon } from '@heroicons/react/24/outline';
 import CopyrightNotice from '@/components/CopyrightNotice';
 import OptimizedImage from '@/components/OptimizedImage';
 import TableOfContents from '@/components/TableOfContents';
+import { Giscus } from '@/components/Giscus';
 import 'katex/dist/katex.min.css';
 import { EndWord } from '@/setting/blogSetting';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
@@ -582,6 +583,21 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
             slug={blog.slug}
             reference={blog.reference}
           />
+          
+          {/* 评论区 */}
+          <motion.div 
+            className="mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
+            <div className={getGlassStyle("rounded-lg shadow-md overflow-hidden border")}>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-4 text-foreground">评论区</h3>
+                <Giscus />
+              </div>
+            </div>
+          </motion.div>
           
           {/* 文章底部导航 */}
           <motion.div 
