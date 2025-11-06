@@ -3,9 +3,10 @@
  * 显示版权信息和相关链接
  */
 
-import { year, name, aWord, ICPLink, policeBeianLink } from '@/setting/FooterSetting';
+import { year, name, aWord, ICPLink, policeBeianLink, startDate } from '@/setting/FooterSetting';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Uptime } from '@/components/Uptime';
 
 /**
  * 获取公安备案图片路径，处理 basePath
@@ -50,6 +51,10 @@ export default function Footer() {
             OxygenBlogPlatform
           </Link>
           <span>驱动</span>
+          
+          {/* 运行时间 */}
+          <span className="mx-1">·</span>
+          <Uptime startDate={startDate} />
         </p>
       </div>
     </footer>
