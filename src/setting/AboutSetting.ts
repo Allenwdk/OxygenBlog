@@ -60,3 +60,4 @@ export const mainContactMeDescription =
 export const subContactMeDescription = "我会尽快回复你的消息 ✨"; //联系我页面补充描述
 export const mail = "mailto:15620209105@163.com"; //邮箱配置
 export const github = "https://github.com/Allenwdk"; //github网站配置
+export const bilibili = "https://space.bilibili.com/456299449"; //bilibili网站配置

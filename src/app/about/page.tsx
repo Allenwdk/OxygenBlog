@@ -10,7 +10,8 @@ import { motion } from 'motion/react';
 import Image from 'next/image';
 import MailIcon from '@/assets/mail.svg';
 import GitHubIcon from '@/assets/github.svg';
-import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, aboutMeP3, mainContactMeDescription, subContactMeDescription, mail, github, isBorder, isRainbowGradient}
+import BiliBiliIcon from '@/assets/bilibili.png';
+import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, aboutMeP3, mainContactMeDescription, subContactMeDescription, mail, github, bilibili, isBorder, isRainbowGradient}
 from '@/setting/AboutSetting';
 import { useTheme } from 'next-themes';
 import { useMemo, useEffect, useState } from 'react';
@@ -198,6 +199,18 @@ export default function AboutPage() {
     color: 'white'
   }), [secondaryColor, accentColor]);
 
+  // BiliBili 图标背景样式 - 增强渐变效果
+  const bilibiliIconStyle = useMemo(() => ({
+    background: `
+      linear-gradient(135deg, 
+        ${secondaryColor} 0%, 
+        ${accentColor} 50%, 
+        ${secondaryColor} 100%
+      )`,
+    backgroundSize: '200% 200%',
+    animation: 'gradientShift 6s ease-in-out infinite',
+    color: 'white'
+  }), [secondaryColor, accentColor]);
 
 
   // 如果还没有挂载，显示默认样式避免闪烁
@@ -434,6 +447,41 @@ export default function AboutPage() {
                     </div>
                   </div>
                 </motion.a>
+
+                {/* BiliBili 卡片 */}
+                <motion.a
+                  href={bilibili}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.8 }}
+                  className="group relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
+                >
+
+                  <div className="relative z-10">
+                    <div 
+                      className="flex items-center justify-center w-12 h-12 rounded-lg mb-4 mx-auto group-hover:scale-110 transition-transform duration-300"
+                      style={bilibiliIconStyle}
+                    >
+                      <Image src={BiliBiliIcon as string} alt="BiliBili" width={24} height={24} className="text-white" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white text-center mb-2">
+                      BiliBili
+                    </h4>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm text-center">
+                      查看我的视频
+                    </p>
+                    <div className="mt-3 text-center">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+                        访问主页
+                      </span>
+                    </div>
+                  </div>
+                </motion.a>
+
               </div>
 
               {/* 底部装饰性文字 */}
