@@ -43,6 +43,7 @@ export default function Navigation() {
   const navItems = [
     { href: '/', label: '首页' },
     { href: '/blogs', label: '博客' },
+    { href: '/publish', label: '发布' },
     { href: '/archive', label: '归档' },
     { href: '/about', label: '关于' },
   ];
