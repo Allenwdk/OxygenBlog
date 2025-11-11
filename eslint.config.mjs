@@ -28,12 +28,12 @@ const eslintConfig = [
       },
     },
     rules: {
-      // 禁止隐式 any，但允许显式 any
-      "@typescript-eslint/no-unsafe-argument": "error",
-      "@typescript-eslint/no-unsafe-assignment": "error",
-      "@typescript-eslint/no-unsafe-call": "error",
-      "@typescript-eslint/no-unsafe-member-access": "error",
-      "@typescript-eslint/no-unsafe-return": "error",
+      // 放宽不安全的类型检查规则（主要用于gray-matter库）
+      "@typescript-eslint/no-unsafe-argument": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn", 
+      "@typescript-eslint/no-unsafe-call": "warn",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-return": "warn",
       "@typescript-eslint/no-explicit-any": "off",
       // 关闭强制 const 规则
       "prefer-const": "off",

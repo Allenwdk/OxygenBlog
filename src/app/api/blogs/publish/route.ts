@@ -3,16 +3,42 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
+// Next.js export config
+export const dynamic = 'force-static';
+
+// 定义类型接口
+interface BlogMetadata {
+  title: string;
+  date: string;
+  category: string;
+  tags: string[];
+  readTime: number;
+  excerpt: string;
+}
+
+interface BlogData {
+  title?: string;
+  date?: string;
+  category?: string;
+  tags?: string[];
+  readTime?: number;
+  excerpt?: string;
+  publishedAt?: string;
+  updatedAt?: string;
+  slug?: string;
+  draft?: boolean;
+}
+
 /**
  * 发布文章到文件系统
  * POST /api/blogs/publish
  */
 export async function POST(request: NextRequest) {
   try {
-    const { content, metadata } = await request.json();
+    const { content, metadata }: { content: string; metadata: BlogMetadata } = await request.json();
     
     // 验证必要字段
-    if (!content || !metadata.title) {
+    if (!content || !metadata?.title?.trim()) {
       return NextResponse.json(
         { success: false, error: '缺少必要字段: content和title' },
         { status: 400 }
@@ -30,14 +56,15 @@ export async function POST(request: NextRequest) {
     // 生成slug并检查是否已存在
     const slug = generateSlug(metadata.title);
     const existingFile = findExistingFile(contentDir, slug);
+    let filename: string;
     
     if (existingFile) {
       // 如果文件已存在，询问是否覆盖或使用新文件名
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const newFilename = `${slug}-${timestamp}.md`;
-      var filename = newFilename;
+      filename = newFilename;
     } else {
-      var filename = `${slug}.md`;
+      filename = `${slug}.md`;
     }
     
     const filePath = path.join(contentDir, filename);
@@ -53,7 +80,7 @@ export async function POST(request: NextRequest) {
       draft: false,
       publishedAt: new Date().toISOString(),
       slug: slug
-    });
+    } as Record<string, any>);
 
     // 写入文件
     fs.writeFileSync(filePath, fullContent, 'utf8');
@@ -110,7 +137,7 @@ function findExistingFile(contentDir: string, slug: string): string | null {
     for (const file of files) {
       const filePath = path.join(contentDir, file);
       const fileContent = fs.readFileSync(filePath, 'utf8');
-      const { data } = matter(fileContent);
+      const { data }: { data: BlogData } = matter(fileContent);
       
       // 检查slug是否匹配或文件名前缀匹配
       if (data.slug === slug || file.startsWith(slug + '.')) {
@@ -144,7 +171,7 @@ export async function GET() {
     const publishedPosts = files.map(filename => {
       const filePath = path.join(contentDir, filename);
       const fileContent = fs.readFileSync(filePath, 'utf8');
-      const { data, content } = matter(fileContent);
+      const { data, content }: { data: BlogData; content: string } = matter(fileContent);
       
       return {
         filename,
@@ -154,7 +181,7 @@ export async function GET() {
         tags: data.tags || [],
         excerpt: data.excerpt || content.substring(0, 200) + '...',
         publishedAt: data.publishedAt || new Date().toISOString(),
-        slug: data.slug || generateSlug(data.title || filename.replace('.md', '')),
+        slug: data.slug || generateSlug((data.title || filename.replace('.md', '')).toString()),
         readTime: data.readTime || 1,
         size: fs.statSync(filePath).size
       };
@@ -180,7 +207,7 @@ export async function GET() {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const { content, metadata, filename } = await request.json();
+    const { content, metadata, filename }: { content: string; metadata: BlogMetadata; filename: string } = await request.json();
     
     // 验证必要字段
     if (!content || !metadata.title || !filename) {
@@ -212,7 +239,7 @@ export async function PUT(request: NextRequest) {
       excerpt: metadata.excerpt,
       draft: false,
       updatedAt: new Date().toISOString()
-    });
+    } as Record<string, any>);
 
     // 写入文件
     fs.writeFileSync(filePath, fullContent, 'utf8');

@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
-import MetadataForm from '@/components/publish/MetadataForm';
+import { motion, AnimatePresence } from 'framer-motion';
 import MarkdownEditor from '@/components/publish/MarkdownEditor';
+import MetadataForm from '@/components/publish/MetadataForm';
 import PreviewPanel from '@/components/publish/PreviewPanel';
 import FileSaveHandler from '@/components/publish/FileSaveHandler';
 
@@ -31,13 +30,10 @@ export default function ClientPublishPage() {
     excerpt: '',
     readTime: 0,
   });
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'edit' | 'preview' | 'metadata'>('edit');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-
-  const { containerStyle } = useBackgroundStyle('publish');
 
   // 清除消息状态
   useEffect(() => {

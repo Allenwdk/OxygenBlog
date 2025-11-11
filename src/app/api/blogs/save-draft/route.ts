@@ -3,6 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
+// Next.js export config
+export const dynamic = 'force-static';
+
 /**
  * 保存文章草稿到文件系统
  * POST /api/blogs/save-draft
