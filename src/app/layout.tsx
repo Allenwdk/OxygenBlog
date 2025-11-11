@@ -45,15 +45,15 @@ export default function RootLayout({
                     document.documentElement.classList.remove('dark');
                   }
                   
-                  // 立即应用purple主题色，避免闪烁
+                  // 立即应用cyan主题色，避免闪烁
                   var isDark = resolvedTheme === 'dark';
                   var root = document.documentElement;
                   
-                  // purple主题配置
+                  // cyan主题配置
                   var themeColors = {
-                    primary: "#8b5cf6",
-                    secondary: "#7c3aed", 
-                    accent: "#a855f7"
+                    primary: "#06b6d4",
+                    secondary: "#0891b2", 
+                    accent: "#22d3ee"
                   };
                   
                   // 十六进制转RGB

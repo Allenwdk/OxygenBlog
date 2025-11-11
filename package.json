@@ -9,10 +9,15 @@
     "start": "next start",
     "lint": "next lint",
     "sync-theme": "node scripts/sync-theme-colors.js",
-    "prebuild": "npm run sync-theme"
+    "prebuild": "npm run sync-theme",
+    "auto-publish": "node scripts/auto-publish.js",
+    "publish": "node scripts/auto-publish.js",
+    "publish-file": "node scripts/auto-publish.js --file",
+    "publish-dir": "node scripts/auto-publish.js --dir"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@octokit/rest": "^22.0.1",
     "@tailwindcss/typography": "^0.5.16",
     "@tsparticles/engine": "^3.8.1",
     "@tsparticles/react": "^3.0.0",

@@ -1,193 +1,222 @@
-# Oxygen Blog Platform
-本项目是一个基于 Next.js 开发的美观、配置方便、简洁的博客平台，目前为 V1.4 版本，后续会根据需求进行更新。
+# OxygenBlog - 博客发布系统
 
-## 功能
-- 支持 Markdown 格式的博客文章
-- 支持分类功能
-- 支持自定义导航栏、侧边栏、页脚等
-- 支持深色模式
+一个基于Next.js和TypeScript的现代化博客系统，支持自动发布到GitHub Pages。
 
-## 如何启动本地调试服务器
+## 功能特性
 
-**node版本: >= 22**
+### 已完成功能
+- ✅ 现代化响应式博客界面
+- ✅ Markdown文章支持
+- ✅ 自动构建和部署到GitHub Pages
+- ✅ 高级发布页面编辑器
+- ✅ 自动化GitHub发布脚本
+- ✅ 主题和样式系统
+- ✅ 评论系统集成(Giscus)
 
-1. git clone 到本地
-2. 安装依赖
+### 最新功能: 自动发布系统
+现在您可以使用GitHub token自动化上传和发布博客文章！
+
+## 快速开始
+
+### 1. 环境配置
+确保在GitHub仓库设置中配置了以下secrets：
+- `BLOG_GITHUB_TOKEN`: 具有repo权限的个人访问令牌
+- `BLOG_GITHUB_BRANCH`: 部署分支 (通常是main)
+- `BLOG_GITHUB_REPO`: 仓库名称
+- `BLOG_GITHUB_OWNER`: 仓库作者/组织名
+
+### 2. 安装依赖
 ```bash
-npm install
-# or
-yarn install
-# or
 pnpm install
 ```
 
-3. 运行项目
+### 3. 本地开发
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+pnpm run dev
 ```
-## 博客存放位置
-博客存放在 `src/content/blogs` 文件夹中，需要遵循一定的规范。
-Markdown 文件元数据规范如下：
+访问 http://localhost:3000 查看博客
 
-```text
+### 4. 构建生产环境
+```bash
+pnpm run build
+```
+
+## 自动发布系统使用指南
+
+### 脚本功能
+自动发布脚本(`scripts/auto-publish.js`)支持以下功能：
+- 解析Markdown文章文件
+- 自动生成文章元数据
+- 创建或更新GitHub仓库文件
+- 触发GitHub Actions自动部署
+
+### 使用方法
+
+#### 1. 单个文件发布
+```bash
+# 发布指定的Markdown文件
+pnpm publish-file posts/my-article.md
+
+# 或者使用完整路径
+pnpm publish-file ./content/posts/my-article.md
+```
+
+#### 2. 批量发布目录
+```bash
+# 发布整个目录下的所有Markdown文件
+pnpm publish-dir posts
+
+# 或者使用完整路径
+pnpm publish-dir ./content/posts
+```
+
+#### 3. 交互式发布
+```bash
+# 启动交互式模式，会显示所有可用的Markdown文件
+pnpm publish
+```
+
+### Markdown文件格式
+
+文章文件应该包含frontmatter元数据和正文内容：
+
+```markdown
 ---
-title: 使用Reference对象数组的示例文章 // 标题，不填写则为文件名
-date: 2023-11-20 // 发布时间
-category: 技术 // 分类
-tags: [React, Next.js, TypeScript] // 标签，目前还不支持通过标签筛选
-readTime: 5 // 阅读时间（选填）
-excerpt: 这是一篇展示如何使用Reference对象数组格式的示例文章 // 摘要，显示在卡片上
-reference: [ // 博文参考来源，可不配置
-  { description: "Next.js官方文档", link: "https://nextjs.org/docs" },
-  { description: "React官方文档", link: "https://reactjs.org/docs/getting-started.html" },
-  { description: "TypeScript官方文档", link: "https://www.typescriptlang.org/docs/" },
-  { description: "Tailwind CSS文档", link: "https://tailwindcss.com/docs" },
-  { description: "MDN Web文档", link: "https://developer.mozilla.org/zh-CN/" }
-]
+title: 文章标题
+summary: 文章摘要
+date: 2024-01-15
+tags: [技术, JavaScript, Next.js]
+category: 技术分享
 ---
+
+这里是文章正文内容，支持Markdown语法。
+
+## 章节标题
+
+正文内容...
+
+- 列表项1
+- 列表项2
 ```
 
-- Markdown 文件内部图片如果存放在本地，需要放在 **public** 文件夹下，然后通过 Markdown 语法引用路径
+### 脚本选项
 
-## 配置
-平台配置存放在 setting 文件夹中，即改即用：
-```text
-AboutSetting.ts // 关于页面的配置
-blogSetting.ts // 博客页面的配置
-FooterSetting.ts // 网站页脚配置
-HomeSetting.ts // 主页配置
-NavigationSetting.ts // 导航栏配置
-WebSetting.ts // 网站配置
+脚本支持以下命令行参数：
+- `--file <路径>`: 发布单个文件
+- `--dir <路径>`: 发布整个目录
+- `--help`: 显示帮助信息
+- `--version`: 显示版本信息
+
+### 环境变量
+脚本会自动从以下环境变量读取配置：
+- `BLOG_GITHUB_TOKEN`: GitHub访问令牌
+- `BLOG_GITHUB_BRANCH`: 目标分支
+- `BLOG_GITHUB_REPO`: 仓库名称
+- `BLOG_GITHUB_OWNER`: 仓库所有者
+
+### 示例
+
+#### 示例1: 发布单篇文章
+```bash
+# 创建一个新文章
+echo "---
+title: 我的第一篇博客
+summary: 这是一篇介绍博客系统的文章
+date: $(date +%Y-%m-%d)
+tags: [博客, 介绍]
+category: 随笔
+---
+
+# 欢迎来到我的博客
+
+这是一篇关于博客系统的介绍文章。
+
+## 主要特性
+
+- 现代化设计
+- 自动化部署
+- Markdown支持
+" > posts/first-post.md
+
+# 发布文章
+pnpm publish-file posts/first-post.md
 ```
-每一个配置文件都为您写好了注释。
 
-### 主题色配置
-项目内置了 10 种精心设计的主题色方案，支持自定义配置：
-
-**预设主题**：`blue`(蓝色)、`purple`(紫色)、`green`(绿色)、`orange`(橙色)、`red`(红色)、`cyan`(青色)、`pink`(粉色)、`gold`(金色)、`indigo`(靛蓝)、`emerald`(祖母绿)
-
-**快速切换**：在 `src/setting/WebSetting.ts` 中修改：
-```typescript
-// 切换到绿色主题
-export const themeColors = themePresets.green;
-
-// 自定义主题色
-export const themeColors = {
-  primary: "#your-primary-color",
-  secondary: "#your-secondary-color", 
-  accent: "#your-accent-color",
-};
+#### 示例2: 批量发布多篇文章
+```bash
+# 发布所有posts目录下的文章
+pnpm publish-dir posts
 ```
 
-**颜色用途**：
-- `primary`：主要按钮、重要文字强调
-- `secondary`：次要按钮、标题渐变  
-- `accent`：装饰元素、动画高亮
+#### 示例3: 查看可发布的文件
+```bash
+# 交互式模式
+pnpm publish
+```
 
-所有主题色都支持自动深色模式适配和平滑过渡效果。
+### 错误处理
 
-## 如何部署
-- 支持一键部署到 Vercel
-- 支持一键部署到 GitHub Pages
-  1. Fork 本仓库
-  2. 在 Settings 里面打开 Pages，并且选择 GitHub Actions 方式配置
-  3. 打开 Actions，选择 Deploy to GitHub Pages，点击 Run Workflow
-  4. 等待部署完毕，点击 GitHub 域名进入您的网站
+脚本包含完善的错误处理机制：
+- 文件不存在检查
+- GitHub API错误处理
+- 网络连接问题处理
+- 权限验证
 
+### 日志输出
 
-## 更新日志
+脚本提供详细的操作日志：
+- ✅ 成功操作
+- ❌ 错误信息
+- ℹ️ 提示信息
+- 📝 处理进度
 
-V 1.0.0 2025.6.29
-- 第一个版本
+### 高级用法
 
-V 1.1.0 2025.6.30
-1. 支持文件名为title
-2. 修复代码高亮问题
-3. 增加Reference和版权声明
-4. 性能优化
-5. 图云页面支持自定义图片
-6. markdown元数据兼容性提醒
+#### 自定义部署
+脚本会自动触发GitHub Actions工作流，您也可以手动触发：
+```bash
+# 通过GitHub CLI手动触发
+gh workflow run deploy.yml
+```
 
-V 1.2.0 2025.6.30
-1. 重构博客文件结构支持深层嵌套和灵活配置
-2. 新增文章大纲导航组件
-3. 优化图片处理逻辑支持相对路径
-4. 改进设置文件的注释和配置项
+#### 监控部署状态
+在GitHub Actions页面可以实时查看部署状态和日志。
 
-V 1.2.1 2025.7.1
-1. 重构博客图片处理逻辑，使用公共目录替代API路由
-2. 修复中文URL编码问题，确保正确处理Unicode字符路径,支持中文博客名
-3. 移除未使用的性能监控组件代码
-4. 更新next配置以支持静态导出和Unicode路由
+## 项目结构
 
-V 1.2.2 2025.7.1
-1. 修复了静态页面样式丢失的 bug
-2. 现在已经支持 GitHub Actions 一键部署到 GitHub Pages！
+```
+OxygenBlog/
+├── src/
+│   ├── app/                 # Next.js应用目录
+│   ├── components/          # React组件
+│   ├── lib/                # 工具库
+│   └── styles/             # 样式文件
+├── scripts/
+│   ├── auto-publish.js     # 自动发布脚本
+│   └── sync-theme-colors.js # 主题同步脚本
+├── posts/                  # 文章文件(可选)
+├── public/                 # 静态资源
+├── .github/workflows/      # GitHub Actions
+├── package.json
+└── README.md
+```
 
-V 1.2.3 2025.7.1
-1. 修复了 GitHub Actions 部署时没有仓库名时的 bug
+## 开发工作流
 
-V 1.2.4 2025.7.4
-1. 修复了非 GitHub 根域名部署的情况下头像丢失的问题
-2. 添加 basePath 支持以适配 GitHub Pages 部署
-3. 添加环境变量 NEXT_PUBLIC_BASE_PATH 配置，用于处理 GitHub Pages 部署时的路径问题
-4. 修改头像和图片组件以自动处理 basePath
-5. 优化 CI 工作流触发条件
+1. **本地开发**: 使用 `pnpm run dev` 启动开发服务器
+2. **文章编辑**: 使用发布页面或创建Markdown文件
+3. **自动发布**: 使用 `pnpm publish` 命令发布文章
+4. **自动部署**: GitHub Actions自动构建和部署
+5. **在线查看**: 通过GitHub Pages访问博客
 
-V 1.3.0 2025.7.13
-1. 添加了主题色和背景图的功能！现在你可以在 WebSetting 里配置你喜欢的主题色，也可以在 WebSetting 文件里配置你喜欢的背景图！
-2. 修复了博客文章里列表和行内代码不能换行的问题
+## 贡献指南
 
-V 1.3.1 2025.7.15
-1. 更新了主题色配置
-2. 优化了暗黑模式下的页面显示
+欢迎提交Issue和Pull Request！
 
-V 1.3.2 2025.7.16
-1. 修复了主题色切换后闪烁的问题
-2. 增加了卡片的毛玻璃特效，在有背景的情况下更美观
-3. 关于我页面的动画字体提供了彩虹渐变和主题色渐变两种选项
-4. 全面优化深色模式和浅色模式的特效
-5. 修复了Reference不受主题色约束的问题
-6. 暗色模式下背景增加了暗色遮罩
+## 许可证
 
-V 1.3.3 2025.7.17
-1. 优化了 setting 的提示词，现在更直观更易懂
-2. 精简代码，保持依赖的整洁
-3. 在关于我页面的自我介绍添加了第三段
-4. 修复 GitHub Actions 重复构建问题
+MIT License
 
-V 1.4.0 2025.7.23
-1. 添加了归档功能，现在历史博客可以通过时间归档了
-2. 新增了自动计算阅读时间功能，如果您不在博客元数据中定义 readTime，那么平台会自动计算阅读时间
+---
 
-V 1.4.1 2025.7.26
-1. 添加了公安备案号的图片显示与超链接跳转
-
-V 1.4.2 2025.7.27
-1. 添加 LICENSE 文件
-2. 优化归档页面的空状态 UI
-3. 修复背景图片路径文件
-4. 在页脚添加项目驱动链接
-5. 修复页脚图片加载失败的问题
-
-## 开源协议
-
-本项目基于 [MIT License](./LICENSE) 开源协议发布。
-
-MIT License 允许您：
-- ✅ 商业使用
-- ✅ 修改代码
-- ✅ 分发代码
-- ✅ 私人使用
-
-但需要：
-- 📋 保留版权声明
-- 📋 保留许可证声明
-
-详细条款请查看 [LICENSE](./LICENSE) 文件。
-
-# 感谢您的使用，在使用过程中遇到任何问题可以提出 Issues 或联系开发者，助力平台变得更好！
+**注意**: 确保在生产环境中正确配置GitHub secrets，以避免发布失败。
