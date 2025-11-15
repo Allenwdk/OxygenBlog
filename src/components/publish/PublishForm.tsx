@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'motion/react';
+import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 import { categories } from '@/setting/blogSetting';
 
 interface FormData {
@@ -26,6 +28,18 @@ export default function PublishForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+
+  const { isBackgroundEnabled } = useBackgroundStyle('blogs');
+
+  /**
+   * 获取毛玻璃样式类名
+   */
+  const getGlassStyle = (baseStyle: string) => {
+    if (isBackgroundEnabled) {
+      return `${baseStyle} backdrop-blur-md bg-card/90 border-border shadow-lg supports-[backdrop-filter]:bg-card/75`;
+    }
+    return `bg-card ${baseStyle} border-border`;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -191,139 +205,183 @@ excerpt: ${formData.excerpt}
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <motion.form 
+      onSubmit={handleSubmit} 
+      className={getGlassStyle("rounded-lg shadow-md overflow-hidden border p-6 md:p-8 space-y-6")}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* 基本信息区域 */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">📋</span>
+          <h2 className="text-xl font-semibold text-foreground">基本信息</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium mb-2 text-foreground">
+              文章标题 *
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+              placeholder="请输入文章标题"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="date" className="block text-sm font-medium mb-2 text-foreground">
+              发布日期 *
+            </label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              value={formData.date}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium mb-2 text-foreground">
+              分类 *
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+            >
+              {categories.slice(1).map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="tags" className="block text-sm font-medium mb-2 text-foreground">
+              标签
+            </label>
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              value={formData.tags}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+              placeholder="React, TypeScript, Next.js"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="readTime" className="block text-sm font-medium mb-2 text-foreground">
+              阅读时间(分钟)
+            </label>
+            <input
+              type="number"
+              id="readTime"
+              name="readTime"
+              value={formData.readTime}
+              onChange={handleInputChange}
+              min="1"
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 内容区域 */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">📝</span>
+          <h2 className="text-xl font-semibold text-foreground">文章内容</h2>
+        </div>
+
         <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-2">
-            文章标题 *
+          <label htmlFor="excerpt" className="block text-sm font-medium mb-2 text-foreground">
+            摘要 *
           </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
+          <textarea
+            id="excerpt"
+            name="excerpt"
+            value={formData.excerpt}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="请输入文章标题"
+            rows={3}
+            className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"
+            placeholder="请输入文章摘要，将显示在文章卡片上"
           />
         </div>
 
         <div>
-          <label htmlFor="date" className="block text-sm font-medium mb-2">
-            发布日期 *
+          <label htmlFor="content" className="block text-sm font-medium mb-2 text-foreground">
+            文章内容 (Markdown) *
           </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date}
+          <textarea
+            id="content"
+            name="content"
+            value={formData.content}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            rows={20}
+            className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-mono text-sm resize-none"
+            placeholder="请输入 Markdown 格式的文章内容..."
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium mb-2">
-            分类 *
-          </label>
-          <select
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleInputChange}
-            required
-            className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            {categories.slice(1).map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="tags" className="block text-sm font-medium mb-2">
-            标签
-          </label>
-          <input
-            type="text"
-            id="tags"
-            name="tags"
-            value={formData.tags}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="React, TypeScript, Next.js"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="readTime" className="block text-sm font-medium mb-2">
-            阅读时间(分钟)
-          </label>
-          <input
-            type="number"
-            id="readTime"
-            name="readTime"
-            value={formData.readTime}
-            onChange={handleInputChange}
-            min="1"
-            className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="excerpt" className="block text-sm font-medium mb-2">
-          摘要 *
-        </label>
-        <textarea
-          id="excerpt"
-          name="excerpt"
-          value={formData.excerpt}
-          onChange={handleInputChange}
-          required
-          rows={3}
-          className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="请输入文章摘要，将显示在文章卡片上"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="content" className="block text-sm font-medium mb-2">
-          文章内容 (Markdown) *
-        </label>
-        <textarea
-          id="content"
-          name="content"
-          value={formData.content}
-          onChange={handleInputChange}
-          required
-          rows={20}
-          className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
-          placeholder="请输入 Markdown 格式的文章内容..."
-        />
-      </div>
-
+      {/* 消息提示 */}
       {message && (
-        <div className={`p-4 rounded-md ${message.includes('成功') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {message}
-        </div>
+        <motion.div 
+          className={`p-4 rounded-lg border ${message.includes('成功') ? 'bg-green-100/50 text-green-700 border-green-200' : 'bg-red-100/50 text-red-700 border-red-200'}`}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="flex items-center gap-2">
+            <span>{message.includes('成功') ? '✅' : '❌'}</span>
+            <span>{message}</span>
+          </div>
+        </motion.div>
       )}
 
-      <div className="flex justify-end">
-        <button
+      {/* 提交按钮 */}
+      <div className="flex justify-end pt-4">
+        <motion.button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          {isSubmitting ? '发布中...' : '发布文章'}
-        </button>
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <span className="animate-spin">⏳</span>
+              发布中...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <span>🚀</span>
+              发布文章
+            </span>
+          )}
+        </motion.button>
       </div>
-    </form>
+    </motion.form>
   );
 }
