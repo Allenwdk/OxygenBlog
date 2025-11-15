@@ -1,5 +1,6 @@
 ---
 title: 使用GitHub Action配置Oxygen Blog
+author: Allenwdk
 date: 2025-9-24
 category: 技术
 tags: [Github]
