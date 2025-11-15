@@ -17,7 +17,12 @@ const nextConfig = {
       }
       
       return `/${repoName}`;
-    })()
+    })(),
+    // GitHub API配置
+    NEXT_PUBLIC_BLOG_GITHUB_TOKEN: process.env.BLOG_GITHUB_TOKEN,
+    NEXT_PUBLIC_BLOG_GITHUB_OWNER: process.env.BLOG_GITHUB_OWNER,
+    NEXT_PUBLIC_BLOG_GITHUB_REPO: process.env.BLOG_GITHUB_REPO,
+    NEXT_PUBLIC_BLOG_GITHUB_BRANCH: process.env.BLOG_GITHUB_BRANCH || 'main'
   },
   // 静态导出时的资源前缀配置
   ...(process.env.NODE_ENV === "production" && {

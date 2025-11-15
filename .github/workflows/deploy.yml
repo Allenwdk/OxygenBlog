@@ -44,6 +44,10 @@ jobs:
         run: pnpm run build
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
+          BLOG_GITHUB_TOKEN: ${{ secrets.BLOG_GITHUB_TOKEN }}
+          BLOG_GITHUB_OWNER: ${{ secrets.BLOG_GITHUB_OWNER }}
+          BLOG_GITHUB_REPO: ${{ secrets.BLOG_GITHUB_REPO }}
+          BLOG_GITHUB_BRANCH: ${{ secrets.BLOG_GITHUB_BRANCH }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

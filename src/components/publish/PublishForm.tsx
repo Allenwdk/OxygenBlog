@@ -96,24 +96,68 @@ excerpt: ${formData.excerpt}
 
   const submitToGitHub = async (fileName: string, content: string) => {
     try {
-      const response = await fetch('/api/publish', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileName,
-          content,
-          path: `src/content/blogs/${fileName}`
-        }),
-      });
+      // 获取GitHub配置
+      const token = process.env.NEXT_PUBLIC_BLOG_GITHUB_TOKEN;
+      const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER;
+      const repo = process.env.NEXT_PUBLIC_BLOG_GITHUB_REPO;
+      const branch = process.env.NEXT_PUBLIC_BLOG_GITHUB_BRANCH || 'main';
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'GitHub 提交失败');
+      if (!token || !owner || !repo) {
+        throw new Error('GitHub配置不完整，请检查环境变量');
       }
 
-      const result = await response.json();
+      const path = `src/content/blogs/${fileName}`;
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      
+      // 先获取文件SHA（如果存在）
+      let sha = '';
+      try {
+        const getResponse = await fetch(`${apiUrl}?ref=${branch}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'Blog-Platform/1.0'
+          }
+        });
+        
+        if (getResponse.ok) {
+          const fileData = await getResponse.json();
+          sha = fileData.sha;
+        }
+      } catch (error) {
+        // 文件不存在，继续创建
+      }
+
+      // 创建/更新文件
+      const putResponse = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Blog-Platform/1.0'
+        },
+        body: JSON.stringify({
+          message: `发布文章: ${fileName}`,
+          content: btoa(unescape(encodeURIComponent(content))), // Base64编码
+          branch: branch,
+          ...(sha && { sha })
+        })
+      });
+
+      if (!putResponse.ok) {
+        let errorMessage = `GitHub API错误: ${putResponse.status}`;
+        try {
+          const errorData = await putResponse.json();
+          errorMessage += ` - ${errorData.message}`;
+        } catch {
+          const errorText = await putResponse.text();
+          errorMessage += ` - ${errorText.substring(0, 200)}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await putResponse.json();
       return result;
     } catch (error) {
       throw new Error(`GitHub 提交错误: ${error instanceof Error ? error.message : '网络请求失败'}`);
