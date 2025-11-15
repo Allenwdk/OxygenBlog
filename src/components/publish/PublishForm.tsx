@@ -30,6 +30,7 @@ export default function PublishForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const { isBackgroundEnabled } = useBackgroundStyle('blogs');
 
@@ -46,6 +47,41 @@ export default function PublishForm() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Markdown格式控制函数
+  const insertMarkdown = (before: string, after: string = '') => {
+    const textarea = document.getElementById('content') as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = formData.content.substring(start, end);
+    const newText = formData.content.substring(0, start) + before + selectedText + after + formData.content.substring(end);
+    
+    setFormData(prev => ({ ...prev, content: newText }));
+    
+    // 恢复光标位置
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+    }, 0);
+  };
+
+  const insertLink = () => {
+    const url = prompt('请输入链接地址:');
+    const text = prompt('请输入链接文字:');
+    if (url && text) {
+      insertMarkdown(`[${text}](${url})`);
+    }
+  };
+
+  const insertImage = () => {
+    const url = prompt('请输入图片地址:');
+    const alt = prompt('请输入图片描述:');
+    if (url) {
+      insertMarkdown(`![${alt || '图片'}](${url})`);
+    }
   };
 
   const generateFrontMatter = () => {
@@ -93,7 +129,7 @@ author: ${formData.author}
         await saveToLocal(fileName, fullContent);
       }
 
-      setMessage('文章发布成功！');
+      setMessage('文章已提交到GitHub，请等待3-5分钟完成部署');
       // 重置表单
       setFormData({
         title: '',
@@ -351,19 +387,141 @@ author: ${formData.author}
         </div>
 
         <div>
-          <label htmlFor="content" className="block text-sm font-medium mb-2 text-foreground">
-            文章内容 (Markdown) *
-          </label>
-          <textarea
-            id="content"
-            name="content"
-            value={formData.content}
-            onChange={handleInputChange}
-            required
-            rows={20}
-            className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-mono text-sm resize-none"
-            placeholder="请输入 Markdown 格式的文章内容..."
-          />
+          <div className="flex items-center justify-between mb-2">
+            <label htmlFor="content" className="block text-sm font-medium text-foreground">
+              文章内容 (Markdown) *
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setIsPreviewMode(!isPreviewMode)}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  isPreviewMode 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {isPreviewMode ? '编辑' : '预览'}
+              </button>
+            </div>
+          </div>
+
+          {/* Markdown 工具栏 */}
+          {!isPreviewMode && (
+            <div className="flex flex-wrap gap-2 mb-3 p-2 bg-muted/50 rounded-lg border">
+              <button
+                type="button"
+                onClick={() => insertMarkdown('**', '**')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                title="粗体"
+              >
+                <strong>B</strong>
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('*', '*')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors italic"
+                title="斜体"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('`', '`')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors font-mono"
+                title="行内代码"
+              >
+                &lt;/&gt;
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('\n\n- ', '')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                title="列表"
+              >
+                •
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('\n# ', '')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                title="标题"
+              >
+                H1
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('\n## ', '')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                title="二级标题"
+              >
+                H2
+              </button>
+              <button
+                type="button"
+                onClick={insertLink}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                title="链接"
+              >
+                🔗
+              </button>
+              <button
+                type="button"
+                onClick={insertImage}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                title="图片"
+              >
+                🖼️
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('\n\n```\n', '\n```\n')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors font-mono"
+                title="代码块"
+              >
+                { }
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('\n\n> ', '')}
+                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                title="引用"
+              >
+                "
+              </button>
+            </div>
+          )}
+
+          {isPreviewMode ? (
+            <div className="w-full px-4 py-3 border border-border rounded-lg bg-background min-h-[400px] max-h-[600px] overflow-y-auto prose prose-sm max-w-none">
+              <div dangerouslySetInnerHTML={{ 
+                __html: formData.content
+                  .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                  .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                  .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                  .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+                  .replace(/\*(.*)\*/gim, '<em>$1</em>')
+                  .replace(/`(.*?)`/gim, '<code>$1</code>')
+                  .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
+                  .replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" class="text-primary hover:underline">$1</a>')
+                  .replace(/!\[([^\]]*)\]\(([^\)]+)\)/gim, '<img src="$2" alt="$1" class="max-w-full h-auto" />')
+                  .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
+                  .replace(/^\- (.*$)/gim, '<li>$1</li>')
+                  .replace(/\n/gim, '<br />')
+              }} />
+            </div>
+          ) : (
+            <textarea
+              id="content"
+              name="content"
+              value={formData.content}
+              onChange={handleInputChange}
+              required
+              rows={20}
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-mono text-sm resize-none"
+              placeholder="请输入 Markdown 格式的文章内容..."
+            />
+          )}
         </div>
       </div>
 
