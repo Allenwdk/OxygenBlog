@@ -19,6 +19,12 @@ export async function POST(request: NextRequest) {
     const branch = process.env.BLOG_GITHUB_BRANCH || 'main';
 
     if (!token || !owner || !repo) {
+      console.error('GitHub 配置缺失:', { 
+        hasToken: !!token, 
+        hasOwner: !!owner, 
+        hasRepo: !!repo,
+        branch 
+      });
       return NextResponse.json(
         { message: 'GitHub 配置不完整，请检查环境变量' },
         { status: 500 }
@@ -32,9 +38,10 @@ export async function POST(request: NextRequest) {
         `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
         {
           headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-          },
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Blog-Platform/1.0',
+        },
         }
       );
 
@@ -58,23 +65,36 @@ export async function POST(request: NextRequest) {
       ...(currentFileSha && { sha: currentFileSha }),
     };
 
-    const response = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+    console.log('GitHub API 请求:', { apiUrl, method: 'PUT', branch, hasFileSha: !!currentFileSha });
+    
+    const response = await fetch(apiUrl,
       {
         method: 'PUT',
         headers: {
-          'Authorization': `token ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
+          'User-Agent': 'Blog-Platform/1.0',
         },
         body: JSON.stringify(requestBody),
       }
     );
+    
+    console.log('GitHub API 响应状态:', response.status, response.statusText);
 
     if (!response.ok) {
-      const errorData = await response.json() as { message: string };
+      let errorMessage = `GitHub API 错误: ${response.status}`;
+      try {
+        const errorData = await response.json() as { message: string };
+        errorMessage = `GitHub API 错误: ${errorData.message}`;
+      } catch {
+        // 如果响应不是JSON，获取文本内容
+        const errorText = await response.text();
+        errorMessage = `GitHub API 错误: ${response.status} - ${errorText.substring(0, 200)}`;
+      }
       return NextResponse.json(
-        { message: `GitHub API 错误: ${errorData.message}` },
+        { message: errorMessage },
         { status: response.status }
       );
     }
