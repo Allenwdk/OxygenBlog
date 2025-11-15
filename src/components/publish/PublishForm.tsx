@@ -1,9 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect, ComponentProps } from 'react';
 import { motion } from 'motion/react';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 import { categories } from '@/setting/blogSetting';
+import LazyMarkdown from '@/components/LazyMarkdown';
+import { ClipboardIcon } from '@heroicons/react/24/outline';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface FormData {
   title: string;
@@ -33,6 +37,23 @@ export default function PublishForm() {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const { isBackgroundEnabled } = useBackgroundStyle('blogs');
+  const [isDark, setIsDark] = useState(false);
+
+  // 监听主题变化
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   /**
    * 获取毛玻璃样式类名
@@ -82,6 +103,117 @@ export default function PublishForm() {
     if (url) {
       insertMarkdown(`![${alt || '图片'}](${url})`);
     }
+  };
+
+  // 语言标准化函数
+  const normalizeLanguage = (language: string): string => {
+    const languageMap: { [key: string]: string } = {
+      'js': 'javascript',
+      'ts': 'typescript',
+      'py': 'python',
+      'cpp': 'c++',
+      'c++': 'cpp',
+      'csharp': 'c#',
+      'c#': 'csharp',
+      'rb': 'ruby',
+      'go': 'golang',
+      'rs': 'rust',
+      'sh': 'bash',
+      'yml': 'yaml',
+      'json': 'json',
+      'html': 'html',
+      'css': 'css',
+      'scss': 'scss',
+      'less': 'less',
+      'md': 'markdown',
+      'sql': 'sql',
+      'vim': 'vim',
+      'dockerfile': 'dockerfile',
+      'makefile': 'makefile',
+      'nginx': 'nginx',
+      'apache': 'apache',
+      'xml': 'xml',
+      'php': 'php',
+      'java': 'java',
+      'kotlin': 'kotlin',
+      'swift': 'swift',
+      'objective-c': 'objective-c',
+      'dart': 'dart',
+      'flutter': 'dart',
+      'vue': 'vue',
+      'react': 'jsx',
+      'jsx': 'jsx',
+      'tsx': 'tsx',
+      'svelte': 'svelte',
+      'angular': 'typescript',
+      'node': 'javascript',
+      'express': 'javascript',
+      'mongodb': 'javascript',
+      'postgresql': 'sql',
+      'mysql': 'sql',
+      'redis': 'bash',
+      'git': 'bash',
+      'github-actions': 'yaml',
+      'gitlab-ci': 'yaml',
+      'docker-compose': 'yaml',
+      'kubernetes': 'yaml',
+      'terraform': 'hcl',
+      'hcl': 'hcl',
+      'puppet': 'puppet',
+      'ansible': 'yaml',
+      'vagrant': 'ruby',
+      'shell': 'bash',
+      'powershell': 'powershell',
+      'cmd': 'dos',
+      'batch': 'dos',
+      'dos': 'dos'
+    };
+    
+    const normalizedLang = language.toLowerCase().trim();
+    return languageMap[normalizedLang] || normalizedLang;
+  };
+
+  // 获取语言显示名称
+  const getLanguageDisplayName = (language: string): string => {
+    const displayNames: { [key: string]: string } = {
+      'javascript': 'JavaScript',
+      'typescript': 'TypeScript',
+      'python': 'Python',
+      'java': 'Java',
+      'c++': 'C++',
+      'c#': 'C#',
+      'ruby': 'Ruby',
+      'go': 'Go',
+      'rust': 'Rust',
+      'php': 'PHP',
+      'swift': 'Swift',
+      'kotlin': 'Kotlin',
+      'objective-c': 'Objective-C',
+      'dart': 'Dart',
+      'html': 'HTML',
+      'css': 'CSS',
+      'scss': 'SCSS',
+      'less': 'Less',
+      'json': 'JSON',
+      'xml': 'XML',
+      'yaml': 'YAML',
+      'sql': 'SQL',
+      'bash': 'Bash',
+      'powershell': 'PowerShell',
+      'vim': 'Vim',
+      'markdown': 'Markdown',
+      'dockerfile': 'Dockerfile',
+      'nginx': 'Nginx',
+      'apache': 'Apache',
+      'jsx': 'JSX',
+      'tsx': 'TSX',
+      'vue': 'Vue',
+      'svelte': 'Svelte',
+      'hcl': 'HCL',
+      'dos': 'Batch'
+    };
+    
+    return displayNames[language] || language.toUpperCase();
   };
 
   const generateFrontMatter = () => {
@@ -493,22 +625,158 @@ author: ${formData.author}
           )}
 
           {isPreviewMode ? (
-            <div className="w-full px-4 py-3 border border-border rounded-lg bg-background min-h-[400px] max-h-[600px] overflow-y-auto prose prose-sm max-w-none">
-              <div dangerouslySetInnerHTML={{ 
-                __html: formData.content
-                  .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                  .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                  .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                  .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-                  .replace(/\*(.*)\*/gim, '<em>$1</em>')
-                  .replace(/`(.*?)`/gim, '<code>$1</code>')
-                  .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
-                  .replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" class="text-primary hover:underline">$1</a>')
-                  .replace(/!\[([^\]]*)\]\(([^\)]+)\)/gim, '<img src="$2" alt="$1" class="max-w-full h-auto" />')
-                  .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
-                  .replace(/^\- (.*$)/gim, '<li>$1</li>')
-                  .replace(/\n/gim, '<br />')
-              }} />
+            <div className="w-full px-4 py-3 border border-border rounded-lg bg-background min-h-[400px] max-h-[600px] overflow-y-auto">
+              <LazyMarkdown
+                content={formData.content}
+                components={{
+                  p({ children, ...props }: ComponentProps<any>) {
+                    const childrenArray = React.Children.toArray(children);
+                    
+                    // 检查是否包含块级元素
+                    const hasBlockElements = childrenArray.some(child => {
+                      if (React.isValidElement(child)) {
+                        if (typeof child.type === 'string') {
+                          const blockElements = ['div', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'main', 'figure', 'figcaption', 'blockquote', 'pre', 'table', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+                          return blockElements.includes(child.type);
+                        }
+                        if (typeof child.type === 'function' || typeof child.type === 'object') {
+                          return true;
+                        }
+                      }
+                      return false;
+                    });
+                    
+                    if (hasBlockElements) {
+                      return <>{children}</>;
+                    }
+                    
+                    return (
+                      <p className="my-4 leading-relaxed text-gray-700 dark:text-gray-300" {...props}>
+                        {children}
+                      </p>
+                    );
+                  },
+                  pre: ({ children, ...props }: ComponentProps<any>) => (
+                    <pre {...props} className={`relative group my-6 rounded-lg text-sm p-0 overflow-hidden ${
+                      isDark ? 'bg-gray-800 dark:bg-gray-900' : 'bg-gray-100 border border-gray-300'
+                    }`}>
+                      {children}
+                    </pre>
+                  ),
+                  code({ inline, className, children, ...props }: {
+                    inline?: boolean;
+                    className?: string;
+                    children?: React.ReactNode;
+                    [key: string]: any;
+                  }) {
+                    // 提取纯文本内容
+                    const getTextContent = (node: React.ReactNode): string => {
+                      if (typeof node === 'string') return node;
+                      if (typeof node === 'number') return String(node);
+                      if (Array.isArray(node)) return node.map(getTextContent).join('');
+                      if (node && typeof node === 'object' && 'props' in node) {
+                        const reactElement = node as React.ReactElement<{ children?: React.ReactNode }>;
+                        return getTextContent(reactElement.props.children);
+                      }
+                      return '';
+                    };
+
+                    const textContent = getTextContent(children);
+                    const match = /language-(\w+)/.exec(className || '');
+                    const rawLanguage = match ? match[1] : 'text';
+                    const language = normalizeLanguage(rawLanguage);
+                    const codeContent = textContent.replace(/\n$/, '');
+
+                    // 智能判断行内代码
+                    const hasLanguageClass = className && className.startsWith('language-');
+                    const isShortContent = codeContent.length < 100 && !codeContent.includes('\n');
+                    const isInlineCode = inline || (!hasLanguageClass && !className && isShortContent);
+
+                    if (isInlineCode) {
+                      return (
+                        <code 
+                          className="font-mono text-sm bg-accent/10 text-accent px-1.5 py-0.5 rounded-sm inline border border-accent/20 break-words" 
+                          {...props}
+                        >
+                          {textContent}
+                        </code>
+                      );
+                    }
+
+                    return (
+                      <div className="relative">
+                        {/* 代码块头部 - 包含语言标签和复制按钮 */}
+                        <div className={`flex justify-between items-center px-4 py-2 rounded-t-lg border-b ${
+                          isDark 
+                            ? 'bg-gray-650 border-gray-700 text-gray-300' 
+                            : 'bg-gray-100 border-gray-300 text-gray-700'
+                        }`}>
+                          <span className="text-xs font-medium select-none">
+                            {getLanguageDisplayName(language)}
+                          </span>
+                          <button
+                            onClick={() => navigator.clipboard.writeText(codeContent)}
+                            className={`p-1.5 rounded-md transition-colors duration-200 ${
+                              isDark
+                                ? 'text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600'
+                                : 'text-gray-600 hover:text-gray-800 bg-gray-200 hover:bg-gray-300'
+                            }`}
+                            title="复制代码"
+                          >
+                            <ClipboardIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <SyntaxHighlighter
+                          style={isDark ? oneDark : oneLight}
+                          language={language}
+                          PreTag="code"
+                          customStyle={{
+                            margin: 0,
+                            padding: '1.25rem',
+                            backgroundColor: 'transparent',
+                            borderRadius: '0 0 0.5rem 0.5rem',
+                            fontSize: '0.875rem',
+                            display: 'block',
+                          }}
+                          codeTagProps={{
+                            style: {
+                              fontFamily: 'var(--font-mono)',
+                            },
+                          }}
+                        >
+                          {codeContent}
+                        </SyntaxHighlighter>
+                      </div>
+                    );
+                  },
+                  blockquote({ children }: ComponentProps<any>) {
+                    return (
+                      <blockquote className="border-l-4 border-primary bg-primary/5 p-4 my-4 rounded-r-lg">
+                        <div className="flex items-start">
+                          <div className="text-primary mr-2 text-lg">💡</div>
+                          <div className="flex-1">{children}</div>
+                        </div>
+                      </blockquote>
+                    );
+                  },
+                  table({ children }: ComponentProps<any>) {
+                    return (
+                      <div className="overflow-x-auto my-6">
+                        <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600 rounded-lg">
+                          {children}
+                        </table>
+                      </div>
+                    );
+                  },
+                  thead({ children }: ComponentProps<any>) {
+                    return (
+                      <thead className="bg-gray-100 dark:bg-gray-800">
+                        {children}
+                      </thead>
+                    );
+                  },
+                }}
+              />
             </div>
           ) : (
             <textarea
