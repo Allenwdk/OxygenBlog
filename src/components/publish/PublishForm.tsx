@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, ComponentProps } from 'react';
-import { motion } from 'motion/react';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 import { categories } from '@/setting/blogSetting';
 import LazyMarkdown from '@/components/LazyMarkdown';
@@ -82,9 +81,9 @@ export default function PublishForm() {
     
     setFormData(prev => ({ ...prev, content: newText }));
     
-    // 恢复光标位置
+    // 恢复光标位置（不滚动页面）
     setTimeout(() => {
-      textarea.focus();
+      textarea.focus({ preventScroll: true });
       textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
     }, 0);
   };
@@ -379,12 +378,9 @@ author: ${formData.author}
   };
 
   return (
-    <motion.form 
+    <form 
       onSubmit={handleSubmit} 
       className={getGlassStyle("rounded-lg shadow-md overflow-hidden border p-6 md:p-8 space-y-6")}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
     >
       {/* 基本信息区域 */}
       <div className="space-y-6">
@@ -541,86 +537,189 @@ author: ${formData.author}
           {/* Markdown 工具栏 */}
           {!isPreviewMode && (
             <div className="flex flex-wrap gap-2 mb-3 p-2 bg-muted/50 rounded-lg border">
-              <button
-                type="button"
-                onClick={() => insertMarkdown('**', '**')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
-                title="粗体"
-              >
-                <strong>B</strong>
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown('*', '*')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors italic"
-                title="斜体"
-              >
-                I
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown('`', '`')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors font-mono"
-                title="行内代码"
-              >
-                &lt;/&gt;
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown('\n\n- ', '')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
-                title="列表"
-              >
-                •
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown('\n# ', '')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
-                title="标题"
-              >
-                H1
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown('\n## ', '')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
-                title="二级标题"
-              >
-                H2
-              </button>
-              <button
-                type="button"
-                onClick={insertLink}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
-                title="链接"
-              >
-                🔗
-              </button>
-              <button
-                type="button"
-                onClick={insertImage}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
-                title="图片"
-              >
-                🖼️
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown('\n\n```\n', '\n```\n')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors font-mono"
-                title="代码块"
-              >
-                { }
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown('\n\n> ', '')}
-                className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
-                title="引用"
-              >
-                "
-              </button>
+              {/* 文本格式组 */}
+              <div className="flex gap-1 border-r border-border pr-2">
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('**', '**')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="粗体"
+                >
+                  <strong>B</strong>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('*', '*')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors italic"
+                  title="斜体"
+                >
+                  I
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('~~', '~~')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors line-through"
+                  title="删除线"
+                >
+                  S
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('`', '`')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors font-mono"
+                  title="行内代码"
+                >
+                  &lt;/&gt;
+                </button>
+              </div>
+
+              {/* 标题组 */}
+              <div className="flex gap-1 border-r border-border pr-2">
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n# ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="一级标题"
+                >
+                  H1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n## ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="二级标题"
+                >
+                  H2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n### ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="三级标题"
+                >
+                  H3
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n#### ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="四级标题"
+                >
+                  H4
+                </button>
+              </div>
+
+              {/* 列表组 */}
+              <div className="flex gap-1 border-r border-border pr-2">
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n- ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="无序列表"
+                >
+                  •
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n1. ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="有序列表"
+                >
+                  1.
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n- [ ] ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="任务列表"
+                >
+                  ☐
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n- [x] ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="已完成任务"
+                >
+                  ☑
+                </button>
+              </div>
+
+              {/* 媒体组 */}
+              <div className="flex gap-1 border-r border-border pr-2">
+                <button
+                  type="button"
+                  onClick={insertLink}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="链接"
+                >
+                  🔗
+                </button>
+                <button
+                  type="button"
+                  onClick={insertImage}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="图片"
+                >
+                  🖼️
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n> ', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="引用"
+                >
+                  "
+                </button>
+              </div>
+
+              {/* 代码组 */}
+              <div className="flex gap-1 border-r border-border pr-2">
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n```\n', '\n```\n')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors font-mono"
+                  title="代码块"
+                >
+                  { }
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n---\n', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="分割线"
+                >
+                  —
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n| Column 1 | Column 2 | Column 3 |\n|----------|----------|----------|\n| Data 1   | Data 2   | Data 3   |\n', '')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="表格"
+                >
+                  ⊞
+                </button>
+              </div>
+
+              {/* 高级功能组 */}
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n$$\n', '\n$$\n')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="数学公式"
+                >
+                  ∑
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown('\n\n```mermaid\ngraph TD;\n    A-->B;\n    B-->C;\n', '\n```\n')}
+                  className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors"
+                  title="Mermaid图表"
+                >
+                  📊
+                </button>
+              </div>
             </div>
           )}
 
@@ -629,6 +728,48 @@ author: ${formData.author}
               <LazyMarkdown
                 content={formData.content}
                 components={{
+                  h1({ children, ...props }: ComponentProps<any>) {
+                    return (
+                      <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2" {...props}>
+                        {children}
+                      </h1>
+                    );
+                  },
+                  h2({ children, ...props }: ComponentProps<any>) {
+                    return (
+                      <h2 className="text-2xl font-semibold mt-5 mb-3 text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-1" {...props}>
+                        {children}
+                      </h2>
+                    );
+                  },
+                  h3({ children, ...props }: ComponentProps<any>) {
+                    return (
+                      <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-800 dark:text-gray-200" {...props}>
+                        {children}
+                      </h3>
+                    );
+                  },
+                  h4({ children, ...props }: ComponentProps<any>) {
+                    return (
+                      <h4 className="text-lg font-medium mt-3 mb-2 text-gray-700 dark:text-gray-300" {...props}>
+                        {children}
+                      </h4>
+                    );
+                  },
+                  h5({ children, ...props }: ComponentProps<any>) {
+                    return (
+                      <h5 className="text-base font-medium mt-2 mb-1 text-gray-700 dark:text-gray-300" {...props}>
+                        {children}
+                      </h5>
+                    );
+                  },
+                  h6({ children, ...props }: ComponentProps<any>) {
+                    return (
+                      <h6 className="text-sm font-medium mt-2 mb-1 text-gray-600 dark:text-gray-400" {...props}>
+                        {children}
+                      </h6>
+                    );
+                  },
                   p({ children, ...props }: ComponentProps<any>) {
                     const childrenArray = React.Children.toArray(children);
                     
@@ -795,27 +936,22 @@ author: ${formData.author}
 
       {/* 消息提示 */}
       {message && (
-        <motion.div 
+        <div 
           className={`p-4 rounded-lg border ${message.includes('成功') ? 'bg-green-100/50 text-green-700 border-green-200' : 'bg-red-100/50 text-red-700 border-red-200'}`}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.2 }}
         >
           <div className="flex items-center gap-2">
             <span>{message.includes('成功') ? '✅' : '❌'}</span>
             <span>{message}</span>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* 提交按钮 */}
       <div className="flex justify-end pt-4">
-        <motion.button
+        <button
           type="submit"
           disabled={isSubmitting}
           className="px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
@@ -828,8 +964,8 @@ author: ${formData.author}
               发布文章
             </span>
           )}
-        </motion.button>
+        </button>
       </div>
-    </motion.form>
+    </form>
   );
 }
