@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { Timeline } from '@/components/ui/timeline';
@@ -19,6 +19,7 @@ interface BlogPost {
   slug: string;
   readTime: number;
   year: number;
+  author: string;
 }
 
 /**
@@ -34,6 +35,7 @@ interface ClientArchivePageProps {
  */
 export default function ClientArchivePage({ archivedPosts }: ClientArchivePageProps) {
   const { containerStyle, isBackgroundEnabled } = useBackgroundStyle('archive');
+  const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
 
   // 毛玻璃样式函数
   const getGlassStyle = (baseStyle: string) => {
@@ -43,15 +45,40 @@ export default function ClientArchivePage({ archivedPosts }: ClientArchivePagePr
     return `bg-card ${baseStyle} border-border`;
   };
 
+  // 获取所有作者
+  const allAuthors = useMemo(() => {
+    const authors = new Set<string>();
+    Object.values(archivedPosts).forEach(posts => {
+      posts.forEach(post => authors.add(post.author));
+    });
+    return Array.from(authors).sort();
+  }, [archivedPosts]);
+
+  // 筛选后的文章
+  const filteredPosts = useMemo(() => {
+    if (selectedAuthor === 'all') {
+      return archivedPosts;
+    }
+    
+    const filtered: { [year: number]: BlogPost[] } = {};
+    Object.entries(archivedPosts).forEach(([year, posts]) => {
+      const filteredYearPosts = posts.filter(post => post.author === selectedAuthor);
+      if (filteredYearPosts.length > 0) {
+        filtered[parseInt(year)] = filteredYearPosts;
+      }
+    });
+    return filtered;
+  }, [archivedPosts, selectedAuthor]);
+
   // 计算文章总数
   const totalPosts = useMemo(() => {
-    return Object.values(archivedPosts).reduce((sum, posts) => sum + posts.length, 0);
-  }, [archivedPosts]);
+    return Object.values(filteredPosts).reduce((sum, posts) => sum + posts.length, 0);
+  }, [filteredPosts]);
 
   // 准备 Timeline 数据
   const timelineData = useMemo(() => {
     // 获取所有年份并排序（降序）
-    const years = Object.keys(archivedPosts)
+    const years = Object.keys(filteredPosts)
       .map(year => parseInt(year))
       .sort((a, b) => b - a);
 
@@ -59,7 +86,7 @@ export default function ClientArchivePage({ archivedPosts }: ClientArchivePagePr
       title: `${year}`,
       content: (
         <div className="space-y-6">
-          {archivedPosts[year].map((post) => (
+          {filteredPosts[year].map((post) => (
             <motion.div
               key={post.id}
               initial={{ opacity: 0, y: 10 }}
@@ -76,6 +103,8 @@ export default function ClientArchivePage({ archivedPosts }: ClientArchivePagePr
                 </h3>
                 <div className="flex items-center text-sm text-muted-foreground mt-1 space-x-2">
                   <span>{post.date}</span>
+                  <span>•</span>
+                  <span>👤 {post.author}</span>
                   <span>•</span>
                   <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
                     {post.category}
@@ -102,7 +131,7 @@ export default function ClientArchivePage({ archivedPosts }: ClientArchivePagePr
         </div>
       ),
     }));
-  }, [archivedPosts, getGlassStyle]);
+  }, [filteredPosts, getGlassStyle]);
 
   return (
     <div className={containerStyle.className} style={containerStyle.style}>
@@ -114,9 +143,28 @@ export default function ClientArchivePage({ archivedPosts }: ClientArchivePagePr
             className="bg-transparent rounded-lg p-6 mb-8 text-center"
           >
             <h1 className="text-4xl font-bold text-foreground mb-4">博客归档</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               共 {totalPosts} 篇文章，按年份归档
             </p>
+            
+            {/* 作者筛选器 */}
+            {allAuthors.length > 0 && (
+              <div className="flex justify-center items-center gap-4">
+                <label className="text-sm font-medium text-muted-foreground">
+                  筛选作者：
+                </label>
+                <select
+                  value={selectedAuthor}
+                  onChange={(e) => setSelectedAuthor(e.target.value)}
+                  className="px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="all">所有作者</option>
+                  {allAuthors.map(author => (
+                    <option key={author} value={author}>{author}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </motion.div>
 
           {timelineData.length > 0 ? (

@@ -41,6 +41,7 @@ interface BlogPost {
   excerpt: string;
   content: string;
   slug: string;
+  author: string; // 添加作者字段
   reference?: Array<{description: string; link: string}>;
 }
 
@@ -64,6 +65,7 @@ interface BlogFrontMatter {
   tags?: string[];
   readTime?: number;
   excerpt?: string;
+  author?: string; // 添加作者字段
   reference?: Array<{description: string; link: string}>;
   [key: string]: any; // 允许其他未知属性
 }
@@ -190,6 +192,7 @@ async function getBlogContent(slug: string): Promise<BlogPost | null> {
       excerpt: frontMatter.excerpt || '',
       content: content,
       slug: slug,
+      author: frontMatter.author || 'Unknown', // 添加作者信息
       reference: frontMatter.reference
     };
   } catch (error) {

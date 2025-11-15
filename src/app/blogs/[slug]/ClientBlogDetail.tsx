@@ -181,6 +181,7 @@ interface BlogPost {
   excerpt: string;
   content: string;
   slug: string;
+  author: string;
   reference?: Array<{description: string; link: string}>;
 }
 
@@ -249,6 +250,8 @@ export function ClientBlogDetail({ blog }: ClientBlogDetailProps) {
             </h1>
             <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-500">
               <span>{blog.date}</span>
+              <span>•</span>
+              <span>👤 {blog.author}</span>
               <span>•</span>
               <span className="bg-primary/10 text-primary px-2 py-1 rounded border border-primary/20">
                 {blog.category}

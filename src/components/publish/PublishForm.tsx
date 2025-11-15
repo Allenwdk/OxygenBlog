@@ -13,6 +13,7 @@ interface FormData {
   excerpt: string;
   content: string;
   readTime: string;
+  author: string;
 }
 
 export default function PublishForm() {
@@ -23,7 +24,8 @@ export default function PublishForm() {
     tags: '',
     excerpt: '',
     content: '',
-    readTime: '5'
+    readTime: '5',
+    author: 'Unknown'
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,6 +57,7 @@ category: ${formData.category}
 tags: [${tagsArray.join(', ')}]
 readTime: ${formData.readTime}
 excerpt: ${formData.excerpt}
+author: ${formData.author}
 ---
 
 `;
@@ -99,7 +102,8 @@ excerpt: ${formData.excerpt}
         tags: '',
         excerpt: '',
         content: '',
-        readTime: '5'
+        readTime: '5',
+        author: 'Unknown'
       });
     } catch (error) {
       setMessage(`发布失败: ${error instanceof Error ? error.message : '未知错误'}`);
@@ -120,7 +124,8 @@ excerpt: ${formData.excerpt}
         throw new Error('GitHub配置不完整，请检查环境变量');
       }
 
-      const path = `src/content/blogs/${fileName}`;
+      const authorFolder = formData.author || 'Unknown';
+      const path = `src/content/blogs/${authorFolder}/${fileName}`;
       const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
       
       // 先获取文件SHA（如果存在）
@@ -180,6 +185,7 @@ excerpt: ${formData.excerpt}
 
   const saveToLocal = async (fileName: string, content: string) => {
     try {
+      const authorFolder = formData.author || 'Unknown';
       const response = await fetch('/api/publish/local', {
         method: 'POST',
         headers: {
@@ -188,7 +194,7 @@ excerpt: ${formData.excerpt}
         body: JSON.stringify({
           fileName,
           content,
-          path: `src/content/blogs/${fileName}`
+          path: `src/content/blogs/${authorFolder}/${fileName}`
         }),
       });
 
@@ -252,7 +258,7 @@ excerpt: ${formData.excerpt}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
             <label htmlFor="category" className="block text-sm font-medium mb-2 text-foreground">
               分类 *
@@ -271,6 +277,22 @@ excerpt: ${formData.excerpt}
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="author" className="block text-sm font-medium mb-2 text-foreground">
+              作者 *
+            </label>
+            <input
+              type="text"
+              id="author"
+              name="author"
+              value={formData.author}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+              placeholder="请输入作者名称"
+            />
           </div>
 
           <div>

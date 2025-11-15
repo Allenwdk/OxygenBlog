@@ -17,6 +17,7 @@ interface BlogPost {
   slug: string;
   readTime: number;
   year: number; // 添加年份字段用于归档
+  author: string; // 添加作者字段
 }
 
 /**
@@ -29,6 +30,7 @@ interface BlogFrontMatter {
   category?: string;
   tags?: string[];
   readTime?: number;
+  author?: string;
 }
 
 /**
@@ -112,7 +114,8 @@ function getArchivedBlogs(): { [year: number]: BlogPost[] } {
           tags: frontMatter.tags || [],
           slug: slug,
           readTime: frontMatter.readTime || 5,
-          year: year
+          year: year,
+          author: frontMatter.author || 'Unknown'
         });
       } catch (error) {
         console.error(`Error reading blog file ${relativePath}:`, error);

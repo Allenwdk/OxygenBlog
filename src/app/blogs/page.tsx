@@ -16,6 +16,7 @@ interface BlogPost {
   tags: string[];
   slug: string;
   readTime: number;
+  author: string;
 }
 
 /**
@@ -28,6 +29,7 @@ interface BlogFrontMatter {
   category?: string;
   tags?: string[];
   readTime?: number;
+  author?: string;
 }
 
 /**
@@ -119,7 +121,8 @@ function getAllBlogs(): BlogPost[] {
           category: frontMatter.category || '其他',
           tags: frontMatter.tags || [],
           slug: slug,
-          readTime: readTime
+          readTime: readTime,
+          author: frontMatter.author || 'Unknown'
         });
       } catch (error) {
         console.error(`Error reading blog file ${relativePath}:`, error);

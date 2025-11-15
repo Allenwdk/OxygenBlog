@@ -20,6 +20,7 @@ interface BlogPost {
   tags: string[];
   slug: string;
   readTime: number;
+  author: string;
 }
 
 interface ClientBlogsPageProps {
@@ -32,7 +33,9 @@ interface ClientBlogsPageProps {
  */
 export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
   const [isCategoryCollapsed, setIsCategoryCollapsed] = useState<boolean>(true);
+  const [isAuthorCollapsed, setIsAuthorCollapsed] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { containerStyle, isBackgroundEnabled } = useBackgroundStyle('blogs');
   
@@ -50,11 +53,29 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
   };
   
   /**
+   * 获取所有作者列表
+   */
+  const authors = useMemo(() => {
+    const authorSet = new Set(initialPosts.map(post => post.author));
+    return ['all', ...Array.from(authorSet).sort()];
+  }, [initialPosts]);
+
+  /**
    * 过滤博客文章
    */
-  const filteredPosts = selectedCategory === 'all' 
-    ? initialPosts 
-    : initialPosts.filter(post => post.category === selectedCategory);
+  const filteredPosts = useMemo(() => {
+    let filtered = initialPosts;
+    
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(post => post.category === selectedCategory);
+    }
+    
+    if (selectedAuthor !== 'all') {
+      filtered = filtered.filter(post => post.author === selectedAuthor);
+    }
+    
+    return filtered;
+  }, [initialPosts, selectedCategory, selectedAuthor]);
 
   /**
    * 分页计算
@@ -79,6 +100,14 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setCurrentPage(1); // 切换分类时重置到第一页
+  };
+
+  /**
+   * 处理作者变化
+   */
+  const handleAuthorChange = (author: string) => {
+    setSelectedAuthor(author);
+    setCurrentPage(1); // 切换作者时重置到第一页
   };
 
   /**
@@ -220,6 +249,63 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
           </motion.div>
         </motion.div>
 
+        {/* 移动端作者筛选折叠按钮 */}
+        <motion.div 
+          className="lg:hidden mb-6"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <button
+            onClick={() => setIsAuthorCollapsed(!isAuthorCollapsed)}
+            className={getGlassStyle("w-full rounded-lg shadow-md p-4 flex items-center justify-between text-foreground hover:bg-card/90 transition-colors border")}
+          >
+            <span className="flex items-center gap-2">
+              <span>👤</span>
+              <span className="font-medium">作者筛选</span>
+              <span className="text-sm text-muted-foreground">
+                ({selectedAuthor === 'all' ? '全部' : selectedAuthor})
+              </span>
+            </span>
+            <motion.span
+              animate={{ rotate: isAuthorCollapsed ? 0 : 180 }}
+              transition={{ duration: 0.2 }}
+              className="text-muted-foreground"
+            >
+              ▼
+            </motion.span>
+          </button>
+          
+          {/* 移动端作者选项 */}
+          <motion.div
+            initial={false}
+            animate={{ 
+              height: isAuthorCollapsed ? 0 : 'auto',
+              opacity: isAuthorCollapsed ? 0 : 1
+            }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className={getGlassStyle("rounded-lg shadow-md mt-2 p-4 border")}>
+              <div className="grid grid-cols-2 gap-2">
+                {authors.map((author) => (
+                   <button
+                     key={author}
+                     onClick={() => handleAuthorChange(author)}
+                     className={`px-3 py-2 rounded-md text-sm transition-colors ${
+                       selectedAuthor === author
+                         ? 'bg-primary/10 text-primary border border-primary/20'
+                         : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
+                     }`}
+                   >
+                     {author === 'all' ? '全部' : author}
+                   </button>
+                 ))}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* 桌面端左侧边栏 */}
           <motion.aside 
@@ -228,24 +314,49 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className={getGlassStyle("rounded-lg shadow-md p-6 sticky top-24 border")}>
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                📂 分类筛选
-              </h3>
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => handleCategoryChange(category)}
-                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                      selectedCategory === category
-                        ? 'bg-primary/10 text-primary border border-primary/20'
-                        : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
-                    }`}
-                  >
-                    {category === 'all' ? '全部' : category}
-                  </button>
-                ))}
+            <div className="space-y-6 sticky top-24">
+              {/* 分类筛选 */}
+              <div className={getGlassStyle("rounded-lg shadow-md p-6 border")}>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  📂 分类筛选
+                </h3>
+                <div className="space-y-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => handleCategoryChange(category)}
+                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                        selectedCategory === category
+                          ? 'bg-primary/10 text-primary border border-primary/20'
+                          : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
+                      }`}
+                    >
+                      {category === 'all' ? '全部' : category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 作者筛选 */}
+              <div className={getGlassStyle("rounded-lg shadow-md p-6 border")}>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  👤 作者筛选
+                </h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {authors.map((author) => (
+                    <button
+                      key={author}
+                      onClick={() => handleAuthorChange(author)}
+                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                        selectedAuthor === author
+                          ? 'bg-primary/10 text-primary border border-primary/20'
+                          : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
+                      }`}
+                    >
+                      {author === 'all' ? '全部' : author}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.aside>
@@ -260,7 +371,9 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             {/* 文章统计信息 */}
             <div className="mb-6">
               <p className="text-sm text-muted-foreground">
-                {selectedCategory === 'all' ? '全部' : selectedCategory} 分类下共有 {paginationData.totalPosts} 篇文章
+                {selectedCategory === 'all' ? '全部分类' : selectedCategory} · 
+                {selectedAuthor === 'all' ? '全部作者' : selectedAuthor} · 
+                共 {paginationData.totalPosts} 篇文章
                 {paginationData.totalPages > 1 && (
                   <span className="ml-2">
                     (第 {currentPage} 页，共 {paginationData.totalPages} 页)
@@ -315,9 +428,14 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                       </p>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          {post.date}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            👤 {post.author}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {post.date}
+                          </span>
+                        </div>
                         <div className="flex flex-wrap gap-1">
                           {post.tags.slice(0, 2).map((tag) => (
                             <span
@@ -338,7 +456,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
             {paginationData.currentPosts.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">
-                  暂无该分类下的文章
+                  暂无符合条件的文章
                 </p>
               </div>
             )}
