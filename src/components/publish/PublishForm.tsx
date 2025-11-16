@@ -681,7 +681,7 @@ author: ${formData.author}
                   className="px-2 py-1 text-xs bg-background hover:bg-muted border rounded transition-colors font-mono"
                   title="代码块"
                 >
-                  { }
+                  &lt;/&gt;
                 </button>
                 <button
                   type="button"
