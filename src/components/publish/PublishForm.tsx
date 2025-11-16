@@ -937,10 +937,10 @@ author: ${formData.author}
       {/* 消息提示 */}
       {message && (
         <div 
-          className={`p-4 rounded-lg border ${message.includes('成功') ? 'bg-green-100/50 text-green-700 border-green-200' : 'bg-red-100/50 text-red-700 border-red-200'}`}
+          className={`p-4 rounded-lg border ${message.includes('成功') || message.includes('提交') ? 'bg-green-100/50 text-green-700 border-green-200' : 'bg-red-100/50 text-red-700 border-red-200'}`}
         >
           <div className="flex items-center gap-2">
-            <span>{message.includes('成功') ? '✅' : '❌'}</span>
+            <span>{message.includes('成功') || message.includes('提交') ? '✅' : '❌'}</span>
             <span>{message}</span>
           </div>
         </div>
