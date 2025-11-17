@@ -73,11 +73,20 @@ export default function TypingGame() {
     setIsPlaying(true);
     setIsPaused(false);
     setStartTime(Date.now());
-    inputRef.current?.focus();
+    // 聚焦到隐藏的输入框
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   const handlePause = () => {
     setIsPaused(!isPaused);
+    if (!isPaused) {
+      // 如果是暂停操作，保持焦点在输入框
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
   };
 
   const handleReset = () => {
@@ -85,46 +94,57 @@ export default function TypingGame() {
     setCurrentIndex(0);
     setIsPlaying(false);
     setIsPaused(false);
-    setStartTime(0);
+    setShowResults(false);
     setStats({
       cps: 0,
-      accuracy: 100,
-      totalChars: 0,
+      accuracy: 0,
+      timeElapsed: 0,
       correctChars: 0,
-      timeElapsed: 0
+      totalChars: 0
     });
-    setShowResults(false);
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    
     if (!isPlaying || isPaused) return;
 
-    const input = e.target.value;
-    const newIndex = input.length;
-    
-    if (newIndex <= code.length) {
-      setUserInput(input);
-      setCurrentIndex(newIndex);
+    // 只允许添加字符，不允许删除
+    if (value.length < userInput.length) {
+      return;
+    }
+
+    // 检查输入是否正确
+    const newChar = value[value.length - 1];
+    const expectedChar = code[userInput.length];
+
+    if (newChar === expectedChar) {
+      // 正确输入
+      setUserInput(value);
+      setCurrentIndex(prev => prev + 1);
       
       // 更新统计信息
-      let correctCount = 0;
-      for (let i = 0; i < newIndex; i++) {
-        if (input[i] === code[i]) {
-          correctCount++;
-        }
-      }
-      
       setStats(prev => ({
         ...prev,
-        totalChars: newIndex,
-        correctChars: correctCount
+        correctChars: prev.correctChars + 1,
+        totalChars: prev.totalChars + 1
       }));
 
       // 检查是否完成
-      if (newIndex === code.length) {
+      if (value.length >= code.length) {
         setIsPlaying(false);
         setShowResults(true);
       }
+    } else {
+      // 错误输入 - 仍然记录但不前进
+      setUserInput(value);
+      setStats(prev => ({
+        ...prev,
+        totalChars: prev.totalChars + 1
+      }));
     }
   };
 
@@ -146,6 +166,7 @@ export default function TypingGame() {
                 className={`
                   ${isTyped ? (isCorrect ? 'bg-green-500/20 dark:bg-green-500/30' : 'bg-red-500/20 dark:bg-red-500/30 underline decoration-red-500') : ''}
                   ${isCurrent ? 'bg-blue-500/30 dark:bg-blue-500/40' : ''}
+                  ${!isTyped ? 'opacity-50' : ''}
                   transition-colors duration-100
                 `}
               >
@@ -304,19 +325,23 @@ export default function TypingGame() {
               <CardTitle className="text-gray-800 dark:text-white">输入区域</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed relative">
+              <div 
+                className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed relative cursor-text select-none"
+                onClick={() => inputRef.current?.focus()}
+              >
                 <div className="whitespace-pre-wrap break-all max-h-96 overflow-y-auto text-gray-800 dark:text-gray-200">
                   {renderCodeWithHighlight()}
                 </div>
+                <textarea
+                  ref={inputRef}
+                  value={userInput}
+                  onChange={handleInputChange}
+                  disabled={!isPlaying || isPaused}
+                  className="absolute inset-0 w-full h-full p-6 bg-transparent text-transparent caret-transparent resize-none font-mono text-sm leading-relaxed outline-none border-none focus:outline-none focus:border-none"
+                  placeholder=""
+                  style={{ caretColor: 'transparent' }}
+                />
               </div>
-              <textarea
-                ref={inputRef}
-                value={userInput}
-                onChange={handleInputChange}
-                disabled={!isPlaying || isPaused}
-                className="w-full h-32 mt-4 p-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg border border-gray-300 dark:border-gray-600 focus:border-primary focus:outline-none resize-none font-mono text-sm"
-                placeholder={isPlaying ? "开始输入代码..." : "点击开始按钮开始游戏"}
-              />
             </CardContent>
           </Card>
         </div>
