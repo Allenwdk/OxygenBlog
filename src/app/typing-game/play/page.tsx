@@ -32,7 +32,7 @@ export default function TypingGame() {
     timeElapsed: 0
   });
   const [showResults, setShowResults] = useState<boolean>(false);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedCode = sessionStorage.getItem('typingGameCode');
@@ -79,6 +79,10 @@ export default function TypingGame() {
     }
   };
 
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
+
   const handleReset = () => {
     setUserInput('');
     setCurrentIndex(0);
@@ -92,16 +96,11 @@ export default function TypingGame() {
       correctChars: 0,
       totalChars: 0
     });
-    if (inputRef.current) {
-      inputRef.current.value = '';
-    }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     // 如果游戏还没开始，现在开始
-    if (!isPlaying && value.length > 0) {
+    if (!isPlaying) {
       setIsPlaying(true);
       setStartTime(Date.now());
     }
@@ -109,18 +108,24 @@ export default function TypingGame() {
     if (!isPlaying || isPaused) return;
 
     // 处理退格键
-    if (value.length < userInput.length) {
-      setUserInput(value);
-      setCurrentIndex(value.length);
+    if (e.key === 'Backspace') {
+      if (userInput.length > 0) {
+        setUserInput(prev => prev.slice(0, -1));
+        setCurrentIndex(prev => Math.max(0, prev - 1));
+      }
       return;
     }
 
-    // 获取新输入的字符
-    const newChar = value[value.length - 1];
+    // 忽略功能键
+    if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) {
+      return;
+    }
+
+    const newChar = e.key;
     const expectedChar = code[userInput.length];
     
     // 无论对错都接受输入
-    setUserInput(value);
+    setUserInput(prev => prev + newChar);
     
     if (newChar === expectedChar) {
       // 正确输入
@@ -140,7 +145,7 @@ export default function TypingGame() {
     }
 
     // 检查是否完成
-    if (value.length >= code.length) {
+    if (userInput.length + 1 >= code.length) {
       setIsPlaying(false);
       setShowResults(true);
     }
@@ -311,21 +316,15 @@ export default function TypingGame() {
           </CardHeader>
           <CardContent>
             <div 
-              className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed relative cursor-text select-none"
-              onClick={() => inputRef.current?.focus()}
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed relative cursor-text select-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              onClick={focusInput}
+              onKeyDown={handleKeyDown}
+              tabIndex={0}
+              ref={inputRef}
             >
               <div className="whitespace-pre-wrap break-all max-h-96 overflow-y-auto text-gray-800 dark:text-gray-200">
                 {renderCodeWithHighlight()}
               </div>
-              <textarea
-                ref={inputRef}
-                value={userInput}
-                onChange={handleInputChange}
-                disabled={isPaused}
-                className="absolute inset-0 w-full h-full p-6 bg-transparent text-transparent caret-transparent resize-none font-mono text-sm leading-relaxed outline-none border-none focus:outline-none focus:border-none"
-                placeholder=""
-                style={{ caretColor: 'transparent' }}
-              />
             </div>
           </CardContent>
         </Card>
