@@ -144,8 +144,8 @@ export default function TypingGame() {
               <span
                 key={charIndex}
                 className={`
-                  ${isTyped ? (isCorrect ? 'bg-green-500/20' : 'bg-red-500/20 underline decoration-red-500') : ''}
-                  ${isCurrent ? 'bg-blue-500/30' : ''}
+                  ${isTyped ? (isCorrect ? 'bg-green-500/20 dark:bg-green-500/30' : 'bg-red-500/20 dark:bg-red-500/30 underline decoration-red-500') : ''}
+                  ${isCurrent ? 'bg-blue-500/30 dark:bg-blue-500/40' : ''}
                   transition-colors duration-100
                 `}
               >
@@ -160,38 +160,32 @@ export default function TypingGame() {
 
   if (showResults) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20">
+      <div className="min-h-screen pt-[65px] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-white mb-2">游戏结束!</CardTitle>
+            <CardTitle className="text-2xl text-gray-800 dark:text-white mb-2">游戏结束!</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <p className="text-purple-200 text-sm">CPS</p>
-                <p className="text-white text-2xl font-bold">{stats.cps}</p>
+              <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+                <p className="text-gray-600 dark:text-gray-300 text-sm">CPS</p>
+                <p className="text-gray-800 dark:text-white text-2xl font-bold">{stats.cps}</p>
               </div>
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <p className="text-purple-200 text-sm">准确率</p>
-                <p className="text-white text-2xl font-bold">{stats.accuracy}%</p>
+              <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+                <p className="text-gray-600 dark:text-gray-300 text-sm">准确率</p>
+                <p className="text-gray-800 dark:text-white text-2xl font-bold">{stats.accuracy}%</p>
               </div>
             </div>
-            <div className="bg-white/10 rounded-lg p-4 text-center">
-              <p className="text-purple-200 text-sm">用时</p>
-              <p className="text-white text-xl font-bold">{stats.timeElapsed}秒</p>
+            <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">用时</p>
+              <p className="text-gray-800 dark:text-white text-xl font-bold">{stats.timeElapsed}秒</p>
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={handleReset}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-              >
+              <Button onClick={handleReset} className="flex-1 bg-primary hover:bg-primary/90">
                 <RotateCcw className="w-4 h-4 mr-2" />
                 重新开始
               </Button>
-              <Button
-                onClick={() => router.push('/typing-game/setup')}
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
-              >
+              <Button onClick={() => router.push('/typing-game/setup')} className="flex-1 bg-secondary hover:bg-secondary/90">
                 <Home className="w-4 h-4 mr-2" />
                 返回首页
               </Button>
@@ -203,19 +197,19 @@ export default function TypingGame() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+    <div className="min-h-screen pt-[65px] p-4">
       <div className="max-w-6xl mx-auto">
-        {/* 头部信息 */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-white">
-            <h1 className="text-2xl font-bold">微软大战代码</h1>
-            <p className="text-purple-200">{fileName}</p>
+          {/* 头部信息 */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg p-6 space-y-6 mb-6">
+          <div className="text-gray-800 dark:text-white">
+              <h1 className="text-2xl font-bold">微软大战代码</h1>
+              <p className="text-gray-600 dark:text-gray-300">{fileName}</p>
           </div>
           <div className="flex gap-2">
             {!isPlaying ? (
               <Button
                 onClick={handleStart}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700"
               >
                 <Play className="w-4 h-4 mr-2" />
                 开始
@@ -223,7 +217,7 @@ export default function TypingGame() {
             ) : (
               <Button
                 onClick={handlePause}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                className="bg-yellow-600 hover:bg-yellow-700"
               >
                 <Pause className="w-4 h-4 mr-2" />
                 {isPaused ? '继续' : '暂停'}
@@ -231,14 +225,14 @@ export default function TypingGame() {
             )}
             <Button
               onClick={handleReset}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               重置
             </Button>
             <Button
               onClick={() => router.push('/typing-game/setup')}
-              className="bg-gray-600 hover:bg-gray-700 text-white"
+              className="bg-secondary hover:bg-secondary/90"
             >
               <Home className="w-4 h-4 mr-2" />
               返回
@@ -248,23 +242,23 @@ export default function TypingGame() {
 
         {/* 统计信息 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white/10 rounded-lg p-4 text-center">
-            <p className="text-purple-200 text-sm">CPS</p>
-            <p className="text-white text-xl font-bold">{stats.cps}</p>
+          <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+            <p className="text-gray-600 dark:text-gray-300 text-sm">CPS</p>
+            <p className="text-gray-800 dark:text-white text-xl font-bold">{stats.cps}</p>
           </div>
-          <div className="bg-white/10 rounded-lg p-4 text-center">
-            <p className="text-purple-200 text-sm">准确率</p>
-            <p className="text-white text-xl font-bold">{stats.accuracy}%</p>
+          <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+            <p className="text-gray-600 dark:text-gray-300 text-sm">准确率</p>
+            <p className="text-gray-800 dark:text-white text-xl font-bold">{stats.accuracy}%</p>
           </div>
-          <div className="bg-white/10 rounded-lg p-4 text-center">
-            <p className="text-purple-200 text-sm">进度</p>
-            <p className="text-white text-xl font-bold">
+          <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+            <p className="text-gray-600 dark:text-gray-300 text-sm">进度</p>
+            <p className="text-gray-800 dark:text-white text-xl font-bold">
               {currentIndex}/{code.length}
             </p>
           </div>
-          <div className="bg-white/10 rounded-lg p-4 text-center">
-            <p className="text-purple-200 text-sm">时间</p>
-            <p className="text-white text-xl font-bold">{stats.timeElapsed}s</p>
+          <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+            <p className="text-gray-600 dark:text-gray-300 text-sm">时间</p>
+            <p className="text-gray-800 dark:text-white text-xl font-bold">{stats.timeElapsed}s</p>
           </div>
         </div>
 
@@ -272,18 +266,18 @@ export default function TypingGame() {
         <div className="mb-6">
           <Progress 
             value={(currentIndex / code.length) * 100} 
-            className="h-2 bg-white/20"
+            className="h-2 bg-gray-200 dark:bg-gray-700"
           />
         </div>
 
         {/* 代码显示区域 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">原始代码</CardTitle>
+              <CardTitle className="text-gray-800 dark:text-white">原始代码</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-gray-900 rounded-lg p-4 overflow-auto max-h-96 font-mono text-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed">
                 <SyntaxHighlighter
                   language={fileName.endsWith('.py') ? 'python' : 
                            fileName.endsWith('.java') ? 'java' :
@@ -291,9 +285,12 @@ export default function TypingGame() {
                            'javascript'}
                   style={vs2015}
                   customStyle={{
-                    background: 'transparent',
-                    margin: 0,
-                    padding: 0
+                    backgroundColor: 'transparent',
+                    padding: '0',
+                    margin: '0',
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                    color: 'inherit'
                   }}
                 >
                   {code}
@@ -302,13 +299,13 @@ export default function TypingGame() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">输入区域</CardTitle>
+              <CardTitle className="text-gray-800 dark:text-white">输入区域</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-gray-900 rounded-lg p-4 overflow-auto max-h-96 font-mono text-sm">
-                <div className="text-gray-300 leading-relaxed">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed relative">
+                <div className="whitespace-pre-wrap break-all max-h-96 overflow-y-auto text-gray-800 dark:text-gray-200">
                   {renderCodeWithHighlight()}
                 </div>
               </div>
@@ -317,7 +314,7 @@ export default function TypingGame() {
                 value={userInput}
                 onChange={handleInputChange}
                 disabled={!isPlaying || isPaused}
-                className="w-full h-32 mt-4 p-3 bg-gray-800 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none resize-none font-mono text-sm"
+                className="w-full h-32 mt-4 p-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg border border-gray-300 dark:border-gray-600 focus:border-primary focus:outline-none resize-none font-mono text-sm"
                 placeholder={isPlaying ? "开始输入代码..." : "点击开始按钮开始游戏"}
               />
             </CardContent>
