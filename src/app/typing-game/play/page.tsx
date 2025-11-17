@@ -5,9 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, RotateCcw, Home } from 'lucide-react';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { Pause, RotateCcw, Home } from 'lucide-react';
 
 interface TypingStats {
   cps: number;
@@ -69,15 +67,7 @@ export default function TypingGame() {
     }
   }, [isPlaying, isPaused, startTime, currentIndex, stats.correctChars]);
 
-  const handleStart = () => {
-    setIsPlaying(true);
-    setIsPaused(false);
-    setStartTime(Date.now());
-    // 聚焦到隐藏的输入框
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
-  };
+
 
   const handlePause = () => {
     setIsPaused(!isPaused);
@@ -110,16 +100,24 @@ export default function TypingGame() {
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     
-    if (!isPlaying || isPaused) return;
-
-    // 只允许添加字符，不允许删除
-    if (value.length < userInput.length) {
-      return;
+    // 如果游戏还没开始，现在开始
+    if (!isPlaying && value.length > 0) {
+      setIsPlaying(true);
+      setStartTime(Date.now());
     }
+
+    if (!isPlaying || isPaused) return;
 
     // 检查输入是否正确
     const newChar = value[value.length - 1];
     const expectedChar = code[userInput.length];
+
+    // 处理退格键
+    if (value.length < userInput.length) {
+      setUserInput(value);
+      setCurrentIndex(prev => prev - 1);
+      return;
+    }
 
     if (newChar === expectedChar) {
       // 正确输入
@@ -167,10 +165,15 @@ export default function TypingGame() {
                   ${isTyped ? (isCorrect ? 'bg-green-500/20 dark:bg-green-500/30' : 'bg-red-500/20 dark:bg-red-500/30 underline decoration-red-500') : ''}
                   ${isCurrent ? 'bg-blue-500/30 dark:bg-blue-500/40' : ''}
                   ${!isTyped ? 'opacity-50' : ''}
-                  transition-colors duration-100
+                  transition-colors duration-100 relative
                 `}
               >
                 {char || ' '}
+                {isCurrent && isPlaying && !isPaused && (
+                  <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="w-0.5 h-5 bg-blue-500 dark:bg-blue-400 animate-pulse">|</span>
+                  </span>
+                )}
               </span>
             );
           })}
@@ -225,17 +228,12 @@ export default function TypingGame() {
           <div className="text-gray-800 dark:text-white">
               <h1 className="text-2xl font-bold">微软大战代码</h1>
               <p className="text-gray-600 dark:text-gray-300">{fileName}</p>
+              {!isPlaying && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">按下任意键开始...</p>
+              )}
           </div>
           <div className="flex gap-2">
-            {!isPlaying ? (
-              <Button
-                onClick={handleStart}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                开始
-              </Button>
-            ) : (
+            {isPlaying && (
               <Button
                 onClick={handlePause}
                 className="bg-yellow-600 hover:bg-yellow-700"
@@ -291,60 +289,31 @@ export default function TypingGame() {
           />
         </div>
 
-        {/* 代码显示区域 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-800 dark:text-white">原始代码</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed">
-                <SyntaxHighlighter
-                  language={fileName.endsWith('.py') ? 'python' : 
-                           fileName.endsWith('.java') ? 'java' :
-                           fileName.endsWith('.cpp') || fileName.endsWith('.c') ? 'cpp' :
-                           'javascript'}
-                  style={vs2015}
-                  customStyle={{
-                    backgroundColor: 'transparent',
-                    padding: '0',
-                    margin: '0',
-                    fontSize: '14px',
-                    lineHeight: '1.5',
-                    color: 'inherit'
-                  }}
-                >
-                  {code}
-                </SyntaxHighlighter>
+        {/* 代码输入区域 */}
+        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-gray-800 dark:text-white">代码输入</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div 
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed relative cursor-text select-none"
+              onClick={() => inputRef.current?.focus()}
+            >
+              <div className="whitespace-pre-wrap break-all max-h-96 overflow-y-auto text-gray-800 dark:text-gray-200">
+                {renderCodeWithHighlight()}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-800 dark:text-white">输入区域</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div 
-                className="bg-white dark:bg-gray-800 rounded-lg p-6 font-mono text-sm leading-relaxed relative cursor-text select-none"
-                onClick={() => inputRef.current?.focus()}
-              >
-                <div className="whitespace-pre-wrap break-all max-h-96 overflow-y-auto text-gray-800 dark:text-gray-200">
-                  {renderCodeWithHighlight()}
-                </div>
-                <textarea
-                  ref={inputRef}
-                  value={userInput}
-                  onChange={handleInputChange}
-                  disabled={!isPlaying || isPaused}
-                  className="absolute inset-0 w-full h-full p-6 bg-transparent text-transparent caret-transparent resize-none font-mono text-sm leading-relaxed outline-none border-none focus:outline-none focus:border-none"
-                  placeholder=""
-                  style={{ caretColor: 'transparent' }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <textarea
+                ref={inputRef}
+                value={userInput}
+                onChange={handleInputChange}
+                disabled={isPaused}
+                className="absolute inset-0 w-full h-full p-6 bg-transparent text-transparent caret-transparent resize-none font-mono text-sm leading-relaxed outline-none border-none focus:outline-none focus:border-none"
+                placeholder=""
+                style={{ caretColor: 'transparent' }}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
