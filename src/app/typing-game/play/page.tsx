@@ -99,6 +99,11 @@ export default function TypingGame() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // 阻止默认行为，防止Tab键跳出
+    if (e.key === 'Tab') {
+      e.preventDefault();
+    }
+
     // 如果游戏还没开始，现在开始
     if (!isPlaying) {
       setIsPlaying(true);
@@ -116,8 +121,10 @@ export default function TypingGame() {
       return;
     }
 
-    // 忽略功能键
-    if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) {
+    // 忽略功能键，但允许输入法相关的按键
+    if ((e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) && 
+        !e.key.startsWith('Process') && // 输入法处理中的按键
+        e.key !== 'Unidentified') { // 未识别的按键（可能是输入法）
       return;
     }
 
@@ -175,7 +182,8 @@ export default function TypingGame() {
                   transition-colors duration-100
                 `}
               >
-                {char}
+                {/* 错误时显示用户输入的字符，否则显示原始字符 */}
+                {isError ? userInput[globalIndex] : char}
                 {isCurrent && isPlaying && !isPaused && (
                   <span className="absolute -left-0.5 top-0 w-0.5 h-full bg-blue-500 dark:bg-blue-400 animate-pulse" style={{ animation: 'pulse 1s infinite' }}></span>
                 )}
@@ -186,12 +194,13 @@ export default function TypingGame() {
           {lineIndex < lines.length - 1 && (
             <span
               className={`
+                inline-block w-4 h-4 ml-1 text-xs text-gray-400 dark:text-gray-500
                 ${(lines.slice(0, lineIndex).join('\n').length + line.length) < currentIndex ? 'bg-green-500/20 dark:bg-green-500/30' : ''}
                 ${(lines.slice(0, lineIndex).join('\n').length + line.length) === currentIndex ? 'relative' : ''}
                 ${(lines.slice(0, lineIndex).join('\n').length + line.length) >= currentIndex ? 'opacity-50' : ''}
               `}
             >
-              
+              ↵
               {(lines.slice(0, lineIndex).join('\n').length + line.length) === currentIndex && isPlaying && !isPaused && (
                 <span className="absolute -left-0.5 top-0 w-0.5 h-full bg-blue-500 dark:bg-blue-400 animate-pulse" style={{ animation: 'pulse 1s infinite' }}></span>
               )}
