@@ -121,6 +121,64 @@ export default function TypingGame() {
       return;
     }
 
+    // 处理回车键
+    if (e.key === 'Enter') {
+      const newChar = '\n';
+      const expectedChar = code[userInput.length];
+      
+      setUserInput(prev => prev + newChar);
+      
+      if (newChar === expectedChar) {
+        setCurrentIndex(prev => prev + 1);
+        setStats(prev => ({
+          ...prev,
+          correctChars: prev.correctChars + 1,
+          totalChars: prev.totalChars + 1
+        }));
+      } else {
+        setCurrentIndex(prev => prev + 1);
+        setStats(prev => ({
+          ...prev,
+          totalChars: prev.totalChars + 1
+        }));
+      }
+      
+      if (userInput.length + 1 >= code.length) {
+        setIsPlaying(false);
+        setShowResults(true);
+      }
+      return;
+    }
+
+    // 处理Tab键
+    if (e.key === 'Tab') {
+      const newChar = '\t';
+      const expectedChar = code[userInput.length];
+      
+      setUserInput(prev => prev + newChar);
+      
+      if (newChar === expectedChar) {
+        setCurrentIndex(prev => prev + 1);
+        setStats(prev => ({
+          ...prev,
+          correctChars: prev.correctChars + 1,
+          totalChars: prev.totalChars + 1
+        }));
+      } else {
+        setCurrentIndex(prev => prev + 1);
+        setStats(prev => ({
+          ...prev,
+          totalChars: prev.totalChars + 1
+        }));
+      }
+      
+      if (userInput.length + 1 >= code.length) {
+        setIsPlaying(false);
+        setShowResults(true);
+      }
+      return;
+    }
+
     // 忽略功能键，但允许输入法相关的按键
     if ((e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) && 
         !e.key.startsWith('Process') && // 输入法处理中的按键
