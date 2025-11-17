@@ -108,41 +108,41 @@ export default function TypingGame() {
 
     if (!isPlaying || isPaused) return;
 
-    // 检查输入是否正确
-    const newChar = value[value.length - 1];
-    const expectedChar = code[userInput.length];
-
     // 处理退格键
     if (value.length < userInput.length) {
       setUserInput(value);
-      setCurrentIndex(prev => prev - 1);
+      setCurrentIndex(value.length);
       return;
     }
 
+    // 获取新输入的字符
+    const newChar = value[value.length - 1];
+    const expectedChar = code[userInput.length];
+    
+    // 无论对错都接受输入
+    setUserInput(value);
+    
     if (newChar === expectedChar) {
       // 正确输入
-      setUserInput(value);
       setCurrentIndex(prev => prev + 1);
-      
-      // 更新统计信息
       setStats(prev => ({
         ...prev,
         correctChars: prev.correctChars + 1,
         totalChars: prev.totalChars + 1
       }));
-
-      // 检查是否完成
-      if (value.length >= code.length) {
-        setIsPlaying(false);
-        setShowResults(true);
-      }
     } else {
-      // 错误输入 - 仍然记录但不前进
-      setUserInput(value);
+      // 错误输入 - 也前进但标记为错误
+      setCurrentIndex(prev => prev + 1);
       setStats(prev => ({
         ...prev,
         totalChars: prev.totalChars + 1
       }));
+    }
+
+    // 检查是否完成
+    if (value.length >= code.length) {
+      setIsPlaying(false);
+      setShowResults(true);
     }
   };
 
@@ -157,26 +157,41 @@ export default function TypingGame() {
             const isTyped = globalIndex < currentIndex;
             const isCorrect = isTyped && userInput[globalIndex] === char;
             const isCurrent = globalIndex === currentIndex;
+            const isError = isTyped && userInput[globalIndex] !== char;
             
             return (
               <span
                 key={charIndex}
                 className={`
-                  ${isTyped ? (isCorrect ? 'bg-green-500/20 dark:bg-green-500/30' : 'bg-red-500/20 dark:bg-red-500/30 underline decoration-red-500') : ''}
-                  ${isCurrent ? 'bg-blue-500/30 dark:bg-blue-500/40' : ''}
+                  ${isCorrect ? 'bg-green-500/20 dark:bg-green-500/30' : ''}
+                  ${isError ? 'bg-red-500/20 dark:bg-red-500/30 border-b-2 border-red-500' : ''}
+                  ${isCurrent ? 'relative' : ''}
                   ${!isTyped ? 'opacity-50' : ''}
-                  transition-colors duration-100 relative
+                  transition-colors duration-100
                 `}
               >
-                {char || ' '}
+                {char}
                 {isCurrent && isPlaying && !isPaused && (
-                  <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <span className="w-0.5 h-5 bg-blue-500 dark:bg-blue-400 animate-pulse">|</span>
-                  </span>
+                  <span className="absolute -left-0.5 top-0 w-0.5 h-full bg-blue-500 dark:bg-blue-400 animate-pulse" style={{ animation: 'pulse 1s infinite' }}></span>
                 )}
               </span>
             );
           })}
+          {/* 处理换行符 */}
+          {lineIndex < lines.length - 1 && (
+            <span
+              className={`
+                ${(lines.slice(0, lineIndex).join('\n').length + line.length) < currentIndex ? 'bg-green-500/20 dark:bg-green-500/30' : ''}
+                ${(lines.slice(0, lineIndex).join('\n').length + line.length) === currentIndex ? 'relative' : ''}
+                ${(lines.slice(0, lineIndex).join('\n').length + line.length) >= currentIndex ? 'opacity-50' : ''}
+              `}
+            >
+              
+              {(lines.slice(0, lineIndex).join('\n').length + line.length) === currentIndex && isPlaying && !isPaused && (
+                <span className="absolute -left-0.5 top-0 w-0.5 h-full bg-blue-500 dark:bg-blue-400 animate-pulse" style={{ animation: 'pulse 1s infinite' }}></span>
+              )}
+            </span>
+          )}
         </div>
       );
     });
