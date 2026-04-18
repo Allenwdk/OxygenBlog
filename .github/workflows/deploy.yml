@@ -44,6 +44,7 @@ jobs:
         run: pnpm run build
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
+          USE_CUSTOM_DOMAIN: "true"
           BLOG_GITHUB_TOKEN: ${{ secrets.BLOG_GITHUB_TOKEN }}
           BLOG_GITHUB_OWNER: ${{ secrets.BLOG_GITHUB_OWNER }}
           BLOG_GITHUB_REPO: ${{ secrets.BLOG_GITHUB_REPO }}

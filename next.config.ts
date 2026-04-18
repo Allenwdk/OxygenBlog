@@ -2,16 +2,18 @@ const nextConfig = {
   // 只在构建时启用静态导出，开发时禁用以避免 generateStaticParams 错误
   ...(process.env.NODE_ENV === "production" && { output: "export" }),
   trailingSlash: true,
-  // 环境变量配置，供客户端组件使用
+  // 环境变量配置,供客户端组件使用
   env: {
     NEXT_PUBLIC_BASE_PATH: (() => {
+      // 如果明确配置了自定义域名,不使用 basePath
+      if (process.env.USE_CUSTOM_DOMAIN === "true") return "";
       if (!process.env.GITHUB_ACTIONS) return "";
       
       const repoName = process.env.REPO_NAME || 
                       process.env.GITHUB_REPOSITORY?.split("/")[1] || 
                       "blog-platform";
       
-      // 如果仓库名以 .github.io 结尾，说明是用户主页仓库，不需要 basePath
+      // 如果仓库名以 .github.io 结尾,说明是用户主页仓库,不需要 basePath
       if (repoName.endsWith(".github.io")) {
         return "";
       }
@@ -26,26 +28,28 @@ const nextConfig = {
   },
   // 静态导出时的资源前缀配置
   ...(process.env.NODE_ENV === "production" && {
-    // 动态获取仓库名，支持多种方式：
+    // 动态获取仓库名,支持多种方式:
     // 1. 环境变量 GITHUB_REPOSITORY (格式: owner/repo)
     // 2. 环境变量 REPO_NAME (直接设置仓库名)
     // 3. 默认从 package.json 的 name 字段获取
-    // 特殊处理：如果是 username.github.io 仓库，不设置 basePath
+    // 特殊处理:如果是 username.github.io 仓库或使用自定义域名,不设置 basePath
     basePath: (() => {
+      // 如果明确配置了自定义域名,不使用 basePath
+      if (process.env.USE_CUSTOM_DOMAIN === "true") return "";
       if (!process.env.GITHUB_ACTIONS) return "";
       
       const repoName = process.env.REPO_NAME || 
                       process.env.GITHUB_REPOSITORY?.split("/")[1] || 
                       "blog-platform";
       
-      // 如果仓库名以 .github.io 结尾，说明是用户主页仓库，不需要 basePath
+      // 如果仓库名以 .github.io 结尾,说明是用户主页仓库,不需要 basePath
       if (repoName.endsWith(".github.io")) {
         return "";
       }
       
       return `/${repoName}`;
     })(),
-    // 移除assetPrefix，basePath已经足够处理资源路径
+    // 移除assetPrefix,basePath已经足够处理资源路径
   }),
   images: {
     // 允许的外部图片域名
