@@ -39,6 +39,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        
+      - name: Approve build scripts
+        run: pnpm approve-builds --all
 
       - name: Build project
         run: pnpm run build
