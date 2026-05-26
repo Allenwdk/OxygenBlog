@@ -1,0 +1,9 @@
+allowBuilds:
+  "@tailwindcss/oxide": true
+  "@tsparticles/engine": true
+  sharp: true
+  unrs-resolver: true
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
