@@ -30,7 +30,6 @@ export default function Navigation() {
     { href: '/blogs', label: '博客' },
     { href: '/archive', label: '归档' },
     { href: '/publish', label: '发布' },
-    { href: '/typing-game', label: '打字游戏' },
     { href: '/about', label: '关于' },
   ];
   
