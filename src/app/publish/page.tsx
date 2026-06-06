@@ -9,7 +9,7 @@ export default function PublishPage() {
 
   return (
     <div className={containerStyle.className} style={containerStyle.style}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[65px]">
         {/* 页面标题 */}
         <motion.div 
           className="text-center mb-12"

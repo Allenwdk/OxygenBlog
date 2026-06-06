@@ -198,3 +198,156 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+
+/* ========================================
+   全局毛玻璃样式系统 (Glassmorphism System)
+   ======================================== */
+
+/* 导航栏毛玻璃样式 - 最通透的模糊效果 */
+.glass-nav {
+  @apply bg-background/60 backdrop-blur-xl border-b border-border/20;
+}
+
+/* Logo 光泽扫过效果 */
+.logo-gloss-sweep {
+  @apply relative overflow-hidden;
+}
+
+.logo-gloss-sweep::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/30 dark:via-white/15 to-transparent;
+  animation: light-sweep 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 移动端菜单毛玻璃样式 */
+.mobile-menu-glass {
+  @apply backdrop-blur-xl border-t border-border/20 bg-background/80 dark:bg-background/60;
+}
+
+/* 卡片毛玻璃样式 - 标准透明度 */
+.glass-card {
+  @apply bg-white/45 dark:bg-[#1a1f2e]/45 backdrop-blur-xl border border-white/20 shadow-sm;
+}
+
+/* 模态框毛玻璃样式 - 高模糊，更不透明 */
+.glass-modal {
+  @apply bg-background/70 backdrop-blur-2xl border border-border/30;
+}
+
+/* ========================================
+   三级阴影层次系统
+   ======================================== */
+
+/* 底层阴影 - 用于静态内容块 */
+.shadow-glass-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+/* 中层阴影 - 用于普通卡片 */
+.shadow-glass-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* 高层阴影 - 用于悬浮/重点内容 */
+.shadow-glass-lg {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+/* ========================================
+   全局过渡动画优化
+   ======================================== */
+
+/* 统一缓动函数 - ease-out-cubic */
+* {
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 标准交互过渡 - 200ms */
+.transition-interaction {
+  @apply transition-all duration-200;
+}
+
+/* 页面元素进入过渡 - 400ms */
+.transition-enter {
+  @apply transition-all duration-400;
+}
+
+/* ========================================
+   模糊装饰动画关键帧
+   ======================================== */
+
+@keyframes blob-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  75% {
+    transform: translate(15px, 40px) scale(1.05);
+  }
+}
+
+@keyframes light-sweep {
+  0%, 100% {
+    transform: translateX(-100%) skewX(-15deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.08;
+  }
+  90%, 100% {
+    transform: translateX(200%) skewX(-15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  50%, 100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 导航链接悬停下划线动画 */
+.nav-link-animated {
+  @apply relative transition-all duration-300;
+}
+
+.nav-link-animated::after {
+  content: '';
+  @apply absolute left-0 bottom-0 w-0 h-[2px] bg-primary rounded-full;
+  transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.nav-link-animated:hover::after {
+  @apply w-full;
+}
+
+/* ========================================
+   按钮光晕效果基础样式
+   ======================================== */
+
+.btn-glow {
+  @apply relative overflow-hidden;
+}
+
+.btn-glow::before {
+  content: '';
+  @apply absolute inset-0 rounded-lg opacity-0 transition-opacity duration-300;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.15) 0%,
+    transparent 70%
+  );
+}
+
+.btn-glow:hover::before {
+  @apply opacity-100;
+}

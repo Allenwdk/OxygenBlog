@@ -47,7 +47,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
    */
   const getGlassStyle = (baseStyle: string) => {
     if (isBackgroundEnabled) {
-      return `${baseStyle} backdrop-blur-md bg-card/90 border-border shadow-lg supports-[backdrop-filter]:bg-card/75`;
+      return `${baseStyle} backdrop-blur-xl bg-white/40 dark:bg-[#1a1f2e]/40 border-white/20 dark:border-white/10`;
     }
     return `bg-card ${baseStyle} border-border`;
   };
@@ -136,7 +136,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
   if (initialPosts.length === 0) {
     return (
       <div className={containerStyle.className} style={containerStyle.style}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[65px]">
           {/* 页面标题 */}
           <motion.div 
             className="text-center mb-12"
@@ -179,7 +179,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
 
   return (
     <div className={containerStyle.className} style={containerStyle.style}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[65px]">
         {/* 页面标题 */}
         <motion.div 
           className="text-center mb-12"
@@ -316,7 +316,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
           >
             <div className="space-y-6 sticky top-24">
               {/* 分类筛选 */}
-              <div className={getGlassStyle("rounded-lg shadow-md p-6 border")}>
+              <div className={`glass-card ${getGlassStyle("rounded-lg shadow-md p-6 border")}`}>
                 <h3 className="text-lg font-semibold text-foreground mb-4">
                   📂 分类筛选
                 </h3>
@@ -338,7 +338,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
               </div>
 
               {/* 作者筛选 */}
-              <div className={getGlassStyle("rounded-lg shadow-md p-6 border")}>
+              <div className={`glass-card ${getGlassStyle("rounded-lg shadow-md p-6 border")}`}>
                 <h3 className="text-lg font-semibold text-foreground mb-4">
                   👤 作者筛选
                 </h3>
@@ -406,7 +406,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                     y: -5,
                     transition: { duration: 0.2 }
                   }}
-                  className={getGlassStyle("rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border")}
+                  className={getGlassStyle("rounded-lg shadow-sm overflow-hidden hover:shadow-glass-lg transition-all duration-300 cursor-pointer border")}
                 >
                   <Link href={`/blogs/${encodeURIComponent(post.slug)}`}>
                     <div className="p-6">
@@ -419,8 +419,9 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                         </span>
                       </div>
                       
-                      <h2 className="text-xl font-semibold text-foreground mb-3 hover:text-primary transition-colors">
+                      <h2 className="text-xl font-semibold text-foreground mb-3 hover:text-primary transition-colors group relative overflow-hidden">
                         {post.title}
+                        <span className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
                       </h2>
                       
                       <p className="text-muted-foreground mb-4 line-clamp-3">
@@ -440,7 +441,7 @@ export default function ClientBlogsPage({ initialPosts }: ClientBlogsPageProps) 
                           {post.tags.slice(0, 2).map((tag) => (
                             <span
                               key={tag}
-                              className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded border border-border"
+                              className="px-2 py-0.5 bg-muted/40 text-muted-foreground/80 text-xs rounded border border-border/30"
                             >
                               {tag}
                             </span>

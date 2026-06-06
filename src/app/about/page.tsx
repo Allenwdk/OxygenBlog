@@ -119,9 +119,9 @@ export default function AboutPage() {
   const techIconStyle = useMemo(() => ({
     background: `
       linear-gradient(135deg, 
-        ${primaryColor} 0%, 
-        ${accentColor} 50%, 
-        ${primaryColor} 100%
+        ${primaryColor}cc 0%, 
+        ${accentColor}ff 50%, 
+        ${primaryColor}cc 100%
       )`,
     backgroundSize: '200% 200%',
     animation: 'gradientShift 4s ease-in-out infinite',
@@ -132,9 +132,9 @@ export default function AboutPage() {
   const aboutIconStyle = useMemo(() => ({
     background: `
       linear-gradient(135deg, 
-        ${secondaryColor} 0%, 
-        ${accentColor} 50%, 
-        ${secondaryColor} 100%
+        ${secondaryColor}cc 0%, 
+        ${accentColor}ff 50%, 
+        ${secondaryColor}cc 100%
       )`,
     backgroundSize: '200% 200%',
     animation: 'gradientShift 5s ease-in-out infinite',
@@ -164,9 +164,9 @@ export default function AboutPage() {
   const contactIconStyle = useMemo(() => ({
     background: `
       linear-gradient(135deg, 
-        ${accentColor} 0%, 
-        ${primaryColor} 50%, 
-        ${accentColor} 100%
+        ${accentColor}cc 0%, 
+        ${primaryColor}ff 50%, 
+        ${accentColor}cc 100%
       )`,
     backgroundSize: '200% 200%',
     animation: 'gradientShift 6s ease-in-out infinite',
@@ -177,9 +177,9 @@ export default function AboutPage() {
   const emailIconStyle = useMemo(() => ({
     background: `
       linear-gradient(135deg, 
-        ${primaryColor} 0%, 
-        ${accentColor} 50%, 
-        ${primaryColor} 100%
+        ${primaryColor}cc 0%, 
+        ${accentColor}ff 50%, 
+        ${primaryColor}cc 100%
       )`,
     backgroundSize: '200% 200%',
     animation: 'gradientShift 4s ease-in-out infinite',
@@ -190,9 +190,9 @@ export default function AboutPage() {
   const githubIconStyle = useMemo(() => ({
     background: `
       linear-gradient(135deg, 
-        ${secondaryColor} 0%, 
-        ${accentColor} 50%, 
-        ${secondaryColor} 100%
+        ${secondaryColor}cc 0%, 
+        ${accentColor}ff 50%, 
+        ${secondaryColor}cc 100%
       )`,
     backgroundSize: '200% 200%',
     animation: 'gradientShift 5s ease-in-out infinite',
@@ -203,9 +203,9 @@ export default function AboutPage() {
   const bilibiliIconStyle = useMemo(() => ({
     background: `
       linear-gradient(135deg, 
-        ${secondaryColor} 0%, 
-        ${accentColor} 50%, 
-        ${secondaryColor} 100%
+        ${secondaryColor}cc 0%, 
+        ${accentColor}ff 50%, 
+        ${secondaryColor}cc 100%
       )`,
     backgroundSize: '200% 200%',
     animation: 'gradientShift 6s ease-in-out infinite',
@@ -240,7 +240,7 @@ export default function AboutPage() {
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 主要内容卡片 */}
-        <div className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+        <div className="relative z-10 bg-white/45 dark:bg-[#1a1f2e]/45 backdrop-blur-xl rounded-2xl shadow-glass-md border border-white/20 dark:border-white/10 overflow-hidden">
           {/* 头部区域 - 使用主题色背景 */}
           <div 
             className="relative p-8 text-white transition-all duration-500 overflow-hidden"
@@ -252,9 +252,22 @@ export default function AboutPage() {
               `,
             }}
           >
-            {/* 动态光效背景 */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/10"></div>
+            {/* 动态光泽 overlay */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `
+                  linear-gradient(105deg, 
+                    transparent 20%, 
+                    rgba(255, 255, 255, 0.08) 45%, 
+                    rgba(255, 255, 255, 0.15) 50%, 
+                    rgba(255, 255, 255, 0.08) 55%, 
+                    transparent 80%
+                  )
+                `,
+                animation: 'shimmer 6s ease-in-out infinite',
+              }}
+            />
             
             {/* 装饰性几何图形 */}
             <div className="absolute top-4 right-4 w-20 h-20 rounded-full opacity-20" 
@@ -301,7 +314,7 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               {/* 技术栈卡片 - 使用简洁的主题色背景 */}
               <div 
-                className="rounded-xl p-6 border transition-all duration-500 shadow-lg hover:shadow-xl"
+                className="rounded-xl p-6 border transition-all duration-300 hover:scale-[1.02] hover:shadow-glass-lg"
                 style={techStackCardStyle}
               >
                 <div className="flex items-center mb-4">
@@ -322,7 +335,7 @@ export default function AboutPage() {
 
               {/* 关于我卡片 - 使用简洁的主题色背景 */}
               <div 
-                className="rounded-xl p-6 border transition-all duration-500 shadow-lg hover:shadow-xl"
+                className="rounded-xl p-6 border transition-all duration-300 hover:scale-[1.02] hover:shadow-glass-lg"
                 style={aboutMeCardStyle}
               >
                 <div className="flex items-center mb-4">
@@ -381,7 +394,7 @@ export default function AboutPage() {
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                 {/* Email 卡片 */}
                 <motion.a
                   href={mail}
@@ -390,7 +403,7 @@ export default function AboutPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
-                  className="group relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
+                  className="group relative bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-xl p-6 shadow-md hover:shadow-glass-lg border border-white/30 dark:border-white/10 transition-all duration-300 cursor-pointer overflow-hidden"
                 >
 
                   <div className="relative z-10">
@@ -424,7 +437,7 @@ export default function AboutPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.8 }}
-                  className="group relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
+                  className="group relative bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-xl p-6 shadow-md hover:shadow-glass-lg border border-white/30 dark:border-white/10 transition-all duration-300 cursor-pointer overflow-hidden"
                 >
 
                   <div className="relative z-10">
@@ -458,7 +471,7 @@ export default function AboutPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.8 }}
-                  className="group relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
+                  className="group relative bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-xl p-6 shadow-md hover:shadow-glass-lg border border-white/30 dark:border-white/10 transition-all duration-300 cursor-pointer overflow-hidden"
                 >
 
                   <div className="relative z-10">

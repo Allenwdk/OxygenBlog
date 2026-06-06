@@ -1,0 +1,16 @@
+- [x] 全局毛玻璃样式系统已在 globals.css 中正确定义（glass-card、glass-nav、glass-modal 类）
+- [x] 三级阴影系统已建立（shadow-sm / shadow-md / shadow-lg）
+- [x] BackgroundLayer 包含模糊圆形装饰元素，颜色与主题色协调
+- [x] BackgroundLayer 装饰元素在深色模式下透明度降低
+- [x] Navigation 使用更强模糊效果（backdrop-blur-xl）
+- [x] Navigation 导航链接悬停有下划线动画效果
+- [x] Navigation 移动端菜单使用毛玻璃效果
+- [x] 首页按钮增加光晕背景效果
+- [x] ClientBlogsPage 卡片使用更透明的毛玻璃样式
+- [x] ClientBlogsPage 卡片阴影基础态为 shadow-sm，悬浮时为 shadow-lg
+- [x] AboutPage 主内容卡片已升级毛玻璃效果
+- [x] Footer 使用通透的模糊效果（backdrop-blur-xl）
+- [x] 所有过渡动画使用统一的 ease-out-cubic 缓动函数
+- [x] 页面组件之间间距增加，呼吸感更强
+- [x] 生产环境构建通过（pnpm build 成功）
+- [x] pnpm-lock.yaml 锁文件已更新

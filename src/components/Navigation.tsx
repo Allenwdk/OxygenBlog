@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import ThemeToggle from './ThemeToggle';
 import { emojy, name } from '@/setting/NavigationSetting';
-import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
 /**
  * 导航栏组件
@@ -14,21 +13,7 @@ import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
  */
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
-  const { navigationStyle } = useBackgroundStyle('home');
-
-  /**
-   * 监听滚动事件，添加滚动效果
-   */
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   /**
    * 检查链接是否为当前页面
@@ -64,11 +49,11 @@ export default function Navigation() {
   };
   
   return (
-    <nav className={navigationStyle.className} style={navigationStyle.style}>
+    <nav className="glass-nav fixed top-0 left-0 right-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
+          <Link href="/" className="logo-gloss-sweep flex items-center space-x-2" onClick={closeMobileMenu}>
             <span className="text-2xl font-bold text-gray-900 dark:text-white">{emojy}</span>
             <span className="text-xl font-bold text-gray-900 dark:text-white">{name}</span>
           </Link>
@@ -80,8 +65,8 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    pathname === item.href
+                  className={`nav-link-animated px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive(item.href)
                       ? 'text-primary dark:text-primary'
                       : 'text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary'
                   }`}
@@ -121,26 +106,34 @@ export default function Navigation() {
         </div>
         
         {/* Mobile menu */}
-        <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-          isMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
-        }`}>
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={closeMobileMenu}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                  pathname === item.href
-                    ? 'text-primary dark:text-primary'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary hover:bg-gray-50/80 dark:hover:bg-gray-800/50'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              className="md:hidden mobile-menu-glass overflow-hidden"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            >
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeMobileMenu}
+                    className={`block nav-link-animated px-3 py-2 rounded-md text-base font-medium ${
+                      isActive(item.href)
+                        ? 'text-primary dark:text-primary'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </nav>
   );

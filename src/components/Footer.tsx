@@ -21,7 +21,7 @@ function getGonganImagePath(): string {
  */
 export default function Footer() {
   return (
-    <footer className="backdrop-blur-md bg-background/80 border-t border-border/30 py-3 supports-[backdrop-filter]:bg-background/60">
+    <footer className="backdrop-blur-xl bg-background/50 border-t border-border/15 py-3 supports-[backdrop-filter]:bg-background/40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <p className="flex flex-wrap items-center justify-center gap-1 text-xs text-muted-foreground/70">
           
