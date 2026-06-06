@@ -10,7 +10,7 @@
 
 ## 项目介绍
 
-- 这是一个用TypeScript写的个人博客项目，他部署在Github Page上，所以只能使用静态实现。
+- 这是一个用TypeScript写的个人博客项目，他部署在Github Page上，所以**只能使用静态实现**。
 - 你正在在本地开发环境进行开发，所以环境可能与生产环境不同。
 - 项目目前使用了Giscus实现了评论功能。
 - 我已经在Github Action secrets中配置了`BLOG_GITHUB_TOKEN` 、`BLOG_GITHUB_BRANCH`、`BLOG_GITHUB_REPO`、`BLOG_GITHUB_OWNER`这四个secret环境变量，他们分别是：该项目拥有repo权限的token，项目分支名，项目名称，项目作者。在github action编译项目时可以并推荐使用这些值，但在本地你可能无法使用这些值，所以你在本地编译时遇到错误不要烦恼，可以使用本地的env，而不是去修改代码

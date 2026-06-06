@@ -1,6 +1,15 @@
+import type { NextConfig } from 'next';
+
 const nextConfig = {
   // 只在构建时启用静态导出，开发时禁用以避免 generateStaticParams 错误
-  ...(process.env.NODE_ENV === "production" && { output: "export" }),
+  ...(process.env.NODE_ENV === "production" && { 
+    output: "export",
+    // 忽略 API 路由在静态导出时的页面数据收集
+    webpack: (config: any) => {
+      config.ignoreWarnings = [{ module: /api\/moments\/detail/ }];
+      return config;
+    },
+  }),
   trailingSlash: true,
   // 环境变量配置,供客户端组件使用
   env: {
