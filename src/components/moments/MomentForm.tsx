@@ -40,10 +40,9 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
           data: base64Data,
         });
 
-        // 当所有文件都处理完后更新状态
         if (newImages.length === files.length) {
           setImages((prev) => [...prev, ...newImages]);
-          setMessage(`已插入 ${files.length} 张图片`);
+          setMessage(`已添加 ${files.length} 张图片`);
           setMessageType('success');
           setTimeout(() => setMessage(''), 3000);
         }
@@ -51,7 +50,6 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
       reader.readAsDataURL(file);
     });
 
-    // 清空 input 以便重复选择同一文件
     e.target.value = '';
   };
 
@@ -101,12 +99,10 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
       setMessage('动态发布成功！');
       setMessageType('success');
 
-      // 清空表单
       setAuthor('');
       setContent('');
       setImages([]);
 
-      // 通知父组件发布成功
       if (onPublishSuccess) {
         onPublishSuccess();
       }
@@ -120,87 +116,93 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     }
   };
 
+  // Character count
+  const charCount = content.length;
+  const maxChars = 1000;
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg shadow-md overflow-hidden border p-6 md:p-8 space-y-6 bg-card border-border"
+      className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm overflow-hidden"
     >
-      {/* 标题 */}
-      <div className="flex items-center gap-2">
-        <span className="text-xl">💬</span>
-        <h2 className="text-xl font-semibold text-foreground">发布动态</h2>
-      </div>
-
-      {/* 作者输入 */}
-      <div>
-        <label htmlFor="moment-author" className="block text-sm font-medium mb-2 text-foreground">
-          作者 *
-        </label>
+      {/* Author input */}
+      <div className="px-4 pt-4 pb-2">
         <input
           type="text"
           id="moment-author"
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
           required
-          className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-          placeholder="请输入作者名称"
+          maxLength={20}
+          className="w-full text-sm font-medium bg-transparent border-none outline-none placeholder:text-muted-foreground/50 text-foreground"
+          placeholder="你的名字"
         />
       </div>
 
-      {/* 内容输入 */}
-      <div>
-        <label htmlFor="moment-content" className="block text-sm font-medium mb-2 text-foreground">
-          内容 *
-        </label>
-        <div className="relative">
-          <textarea
-            id="moment-content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-            rows={5}
-            className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-mono text-sm resize-none"
-            placeholder="输入动态内容，支持 Markdown 格式..."
-          />
+      {/* Content textarea */}
+      <div className="px-4 pb-2">
+        <textarea
+          id="moment-content"
+          value={content}
+          onChange={(e) => {
+            if (e.target.value.length <= maxChars) {
+              setContent(e.target.value);
+            }
+          }}
+          required
+          rows={3}
+          className="w-full text-[15px] bg-transparent border-none outline-none resize-none placeholder:text-muted-foreground/40 text-foreground leading-relaxed"
+          placeholder="此刻的想法..."
+        />
+      </div>
+
+      {/* Character counter */}
+      <div className="px-4 pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            {/* Image upload button */}
+            <button
+              type="button"
+              onClick={handleFileSelect}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-muted/50"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
+
+          <span className={`text-xs tabular-nums ${charCount > maxChars * 0.9 ? 'text-amber-500' : 'text-muted-foreground/40'}`}>
+            {charCount}/{maxChars}
+          </span>
         </div>
       </div>
 
-      {/* 图片插入按钮 */}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleFileSelect}
-          className="px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 flex items-center gap-2 border border-border"
-        >
-          <span>🖼️</span>
-          <span className="text-sm">插入图片</span>
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFileChange}
-          className="hidden"
-        />
-      </div>
-
-      {/* 图片预览 */}
+      {/* Image preview */}
       {images.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-foreground">已选图片 ({images.length})</h3>
-          <div className="flex flex-wrap gap-3">
+        <div className="px-4 pb-2">
+          <div className="flex flex-wrap gap-2">
             {images.map((image, index) => (
-              <div key={index} className="relative group">
+              <div key={index} className="relative group rounded-xl overflow-hidden border border-border/40 shadow-sm">
                 <img
                   src={image.data}
                   alt={image.name}
-                  className="w-24 h-24 object-cover rounded-lg border border-border"
+                  className="w-20 h-20 object-cover"
                 />
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs"
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-lg font-light"
                   title="移除图片"
                 >
                   ×
@@ -211,39 +213,40 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
         </div>
       )}
 
-      {/* 消息提示 */}
+      {/* Message */}
       {message && (
-        <div
-          className={`p-4 rounded-lg border ${
+        <div className="px-4 pb-2">
+          <div className={`text-xs px-3 py-1.5 rounded-lg ${
             messageType === 'success'
-              ? 'bg-green-100/50 text-green-700 border-green-200'
-              : 'bg-red-100/50 text-red-700 border-red-200'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <span>{messageType === 'success' ? '✅' : '❌'}</span>
-            <span>{message}</span>
+              ? 'bg-emerald-500/10 text-emerald-600'
+              : 'bg-red-500/10 text-red-600'
+          }`}>
+            {message}
           </div>
         </div>
       )}
 
-      {/* 提交按钮 */}
-      <div className="flex justify-end pt-4">
+      {/* Submit bar */}
+      <div className="px-4 py-3 border-t border-border/40 flex items-center justify-end gap-3 bg-muted/20">
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          disabled={isSubmitting || !content.trim()}
+          className={`px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+            content.trim()
+              ? 'bg-primary text-primary-foreground hover:shadow-md hover:-translate-y-0.5 active:translate-y-0'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
+          } disabled:opacity-50`}
         >
           {isSubmitting ? (
-            <span className="flex items-center gap-2">
-              <span className="animate-spin">⏳</span>
-              发布中...
+            <span className="flex items-center gap-1.5">
+              <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              </svg>
+              发布中
             </span>
           ) : (
-            <span className="flex items-center gap-2">
-              <span>📝</span>
-              发布动态
-            </span>
+            '发布'
           )}
         </button>
       </div>

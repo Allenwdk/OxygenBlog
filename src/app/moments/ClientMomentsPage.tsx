@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import MomentForm from '@/components/moments/MomentForm';
 import MomentCard from '@/components/moments/MomentCard';
@@ -33,8 +33,7 @@ interface ClientMomentsPageProps {
 }
 
 /**
- * 客户端动态列表页面
- * 处理交互、发布和展示效果
+ * 客户端动态列表页面 - 社交媒体时间线风格
  */
 export default function ClientMomentsPage({ initialPosts }: ClientMomentsPageProps) {
   const [posts] = useState<MomentPost[]>(initialPosts);
@@ -43,12 +42,8 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
   const [detailData, setDetailData] = useState<MomentDetail | null>(null);
   const { containerStyle } = useBackgroundStyle('moments');
 
-  /**
-   * 打开详情视图
-   */
   const openDetail = useCallback((slug: string) => {
     setSelectedSlug(slug);
-    // 从 posts 中查找对应的完整内容
     const post = posts.find(p => p.slug === slug);
     if (post) {
       setDetailData({
@@ -59,31 +54,22 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
         content: post.content
       });
     }
-    // Update URL without reload
     window.history.pushState({ slug }, '', `?view=${encodeURIComponent(slug)}`);
   }, [posts]);
 
-  /**
-   * 关闭详情视图
-   */
   const closeDetail = useCallback(() => {
     setSelectedSlug(null);
     setDetailData(null);
     window.history.back();
   }, []);
 
-  /**
-   * 重新加载动态列表
-   */
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      // 通过 revalidatePath 刷新服务端数据
       const res = await fetch(`/api/moments/revalidate`, { method: 'POST' });
       if (res.ok) {
         window.location.reload();
       } else {
-        // 如果 revalidate API 不可用，直接刷新页面
         window.location.reload();
       }
     } catch {
@@ -93,15 +79,12 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
     }
   }, []);
 
-  /**
-   * 处理发布成功回调
-   */
   const handlePublishSuccess = useCallback(() => {
     handleRefresh();
   }, [handleRefresh]);
 
   // Handle browser back/forward when closing detail view
-  useCallback(() => {
+  useEffect(() => {
     const handlePopState = () => {
       if (!window.location.search.includes('view=')) {
         setSelectedSlug(null);
@@ -112,152 +95,163 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  /**
-   * 容器动画配置
-   */
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08
-      }
-    }
-  };
+  // Sort posts by date descending (newest first)
+  const sortedPosts = [...posts].sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 
-  // Format date for display
+  // Format date for detail view
   const formattedDate = (dateStr: string) => {
     if (!dateStr) return '';
     try {
       const date = new Date(dateStr);
-      if (!isNaN(date.getTime())) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}年${month}月${day}日`;
-      }
+      if (isNaN(date.getTime())) return dateStr;
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}年${month}月${day}日 ${hours}:${minutes}`;
     } catch {
-      // ignore
+      return dateStr;
     }
-    return dateStr;
   };
 
   return (
     <div className={containerStyle.className} style={containerStyle.style}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[65px] pb-12">
-        {/* 页面标题 */}
-        <motion.div 
-          className="text-center mb-10"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-4xl font-bold text-foreground mb-3">
-            💬 我的动态
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            记录生活中的点点滴滴
-          </p>
-        </motion.div>
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-[70px] pb-16">
 
-        {/* 发布表单 */}
+        {/* Header section */}
         {!selectedSlug && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="mb-10"
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">
+              动态
+            </h1>
+          </motion.div>
+        )}
+
+        {/* Publish form */}
+        {!selectedSlug && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="mb-8"
           >
             <MomentForm onPublishSuccess={handlePublishSuccess} />
           </motion.div>
         )}
 
-        {/* 刷新状态 */}
-        {isRefreshing && (
-          <div className="text-center mb-6">
-            <span className="inline-flex items-center gap-2 text-muted-foreground">
-              <span className="animate-spin">⏳</span>
-              正在刷新动态...
-            </span>
-          </div>
-        )}
-
-        {/* Detail View */}
+        {/* Detail View - clean single post layout */}
         <AnimatePresence>
           {selectedSlug && detailData && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="mb-10"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25 }}
+              className="mb-8"
             >
-              <div className="max-w-4xl mx-auto">
-                {/* Back button */}
-                <button
-                  onClick={closeDetail}
-                  className="mb-6 inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-                >
-                  ← 返回动态列表
-                </button>
+              <button
+                onClick={closeDetail}
+                className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                返回动态
+              </button>
 
-                {/* Detail content */}
-                <div className="glass-card rounded-xl shadow-md overflow-hidden border backdrop-blur-md bg-card/80 supports-[backdrop-filter]:bg-card/60 border-border/50">
-                  <div className="p-8">
-                    {/* Header */}
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-6">
-                      <span>{formattedDate(detailData.date)}</span>
-                      <span>•</span>
-                      <span>👤 {detailData.author}</span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="prose prose-lg max-w-none dark:prose-invert">
-                      <LazyMarkdown content={detailData.content} />
+              {/* Detail card - minimal styling */}
+              <div className="px-4 py-5">
+                {/* Author header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center text-primary-foreground font-semibold shadow-sm ring-2 ring-background/50">
+                    {detailData.author.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="font-medium text-foreground">{detailData.author}</div>
+                    <div className="text-xs text-muted-foreground/70">
+                      {formattedDate(detailData.date)}
                     </div>
                   </div>
+                </div>
+
+                {/* Content - full rendering */}
+                <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+                  <LazyMarkdown content={detailData.content} />
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Dynamic list */}
+        {/* Refresh indicator */}
+        {isRefreshing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-center mb-6"
+          >
+            <span className="text-sm text-muted-foreground">刷新中...</span>
+          </motion.div>
+        )}
+
+        {/* Timeline feed */}
         {!selectedSlug && (
           <>
-            {posts.length > 0 ? (
+            {sortedPosts.length > 0 ? (
               <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="space-y-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {posts.map((post) => (
-                  <MomentCard 
-                    key={post.id} 
-                    post={{ ...post, onClick: () => openDetail(post.slug) }} 
+                {sortedPosts.map((post, index) => (
+                  <MomentCard
+                    key={post.id}
+                    post={{ ...post, onClick: () => openDetail(post.slug) }}
                   />
                 ))}
               </motion.div>
             ) : (
-              <motion.div 
-                className="text-center py-20"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-col items-center justify-center py-24 px-4"
               >
-                <div className="max-w-md mx-auto">
-                  <div className="text-6xl mb-6">📝</div>
-                  <h2 className="text-2xl font-semibold text-foreground mb-4">
-                    暂无动态
-                  </h2>
-                  <p className="text-muted-foreground mb-8">
-                    还没有发布任何动态，快来发布第一条吧！
-                  </p>
-                </div>
+                <div className="text-5xl mb-4 opacity-60">✨</div>
+                <h2 className="text-lg font-medium text-foreground/80 mb-2">
+                  还没有动态
+                </h2>
+                <p className="text-sm text-muted-foreground text-center max-w-xs">
+                  开启你的第一条动态，记录生活中的精彩瞬间吧
+                </p>
               </motion.div>
             )}
           </>
+        )}
+
+        {/* Footer */}
+        {!selectedSlug && sortedPosts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center mt-12"
+          >
+            <div className="w-px h-8 bg-gradient-to-b from-border/50 to-transparent mx-auto mb-4" />
+            <p className="text-xs text-muted-foreground/50">
+              共 {sortedPosts.length} 条动态
+            </p>
+          </motion.div>
         )}
       </div>
     </div>
