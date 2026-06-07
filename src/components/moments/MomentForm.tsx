@@ -205,18 +205,20 @@ ${contentStr}`;
     setMessage('');
 
     try {
-      // 检测是否在 GitHub Pages / 静态导出环境（API 路由不可用）
-      const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER;
-      const hostname = window.location.hostname;
-      const isStaticExport =
-        hostname.includes('github.io') ||
-        (owner && hostname.endsWith(`${owner}.github.io`)) ||
-        !owner;
+      const authorStr = author.trim();
+      const contentStr = content.trim();
 
-      if (isStaticExport) {
-        await submitToGitHub(author.trim(), content.trim(), images);
-      } else {
-        await saveToLocal(author.trim(), content.trim(), images);
+      // 优先尝试本地保存，如果 API 路由不可用（静态导出 / 405），自动降级到直传 GitHub
+      let success = false;
+      try {
+        await saveToLocal(authorStr, contentStr, images);
+        success = true;
+      } catch {
+        // Local API not available (static export), fall back to direct GitHub upload
+      }
+
+      if (!success) {
+        await submitToGitHub(authorStr, contentStr, images);
       }
 
       setMessage('动态发布成功！');

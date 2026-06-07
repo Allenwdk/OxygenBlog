@@ -249,20 +249,17 @@ author: ${formData.author}
       const fullContent = generateFrontMatter() + formData.content;
       const fileName = generateFileName();
 
-      // 检测是否在 GitHub Pages / 静态导出环境（API 路由不可用）
-      const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER;
-      const hostname = window.location.hostname;
-      const isGitHubPages =
-        hostname.includes('github.io') ||
-        (owner && hostname.endsWith(`${owner}.github.io`)) ||
-        !owner;
-
-      if (isGitHubPages) {
-        // GitHub Pages 环境 - 使用 API 提交到仓库
-        await submitToGitHub(fileName, fullContent);
-      } else {
-        // 本地环境 - 保存到本地目录
+      // 优先尝试本地保存，如果 API 路由不可用（静态导出 / 405），自动降级到直传 GitHub
+      let success = false;
+      try {
         await saveToLocal(fileName, fullContent);
+        success = true;
+      } catch {
+        // Local API not available (static export), fall back to direct GitHub upload
+      }
+
+      if (!success) {
+        await submitToGitHub(fileName, fullContent);
       }
 
       setMessage('文章已提交到GitHub，请等待3-5分钟完成部署');
