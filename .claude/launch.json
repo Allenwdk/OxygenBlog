@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "OxygenBlog Dev",
+      "runtimeExecutable": "PORT=0 pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 0,
+      "autoPort": true
+    }
+  ]
+}
