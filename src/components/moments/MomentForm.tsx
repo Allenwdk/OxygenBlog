@@ -57,6 +57,134 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  /**
+   * GitHub Pages 环境：直接调用 GitHub API 推送文件到仓库
+   */
+  const submitToGitHub = async (authorStr: string, contentStr: string, imgs: ImageItem[]) => {
+    const token = process.env.NEXT_PUBLIC_BLOG_GITHUB_TOKEN;
+    const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER;
+    const repo = process.env.NEXT_PUBLIC_BLOG_GITHUB_REPO;
+    const branch = process.env.NEXT_PUBLIC_BLOG_GITHUB_BRANCH || 'main';
+
+    if (!token || !owner || !repo) {
+      throw new Error('GitHub 配置不完整，请检查环境变量');
+    }
+
+    // 生成时间戳和目录路径
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+    const dirPath = `src/content/moments/${authorStr}/${timestamp}`;
+    const contentFilePath = `${dirPath}/content.md`;
+
+    // 生成 front matter + 正文内容
+    const isoDate = new Date().toISOString();
+    const fullContent = `---
+author: ${authorStr}
+date: ${isoDate}
+---
+
+${contentStr}`;
+
+    const commitMessage = `发布动态: ${authorStr} - ${timestamp}`;
+
+    // 上传 content.md
+    await uploadFileToGitHub(token, owner, repo, branch, contentFilePath, fullContent, commitMessage);
+
+    // 上传图片（如果有）
+    for (const image of imgs) {
+      const imageName = image.name || 'image.png';
+      const imagePath = `${dirPath}/${imageName}`;
+      // Remove the data URL prefix before base64 encoding
+      const base64Data = image.data.split(',')[1] || image.data;
+      await uploadFileToGitHub(token, owner, repo, branch, imagePath, base64Data, commitMessage, 'base64');
+    }
+
+    return { path: contentFilePath, timestamp };
+  };
+
+  /**
+   * 通过 GitHub API 上传文件到仓库
+   */
+  async function uploadFileToGitHub(
+    token: string,
+    owner: string,
+    repo: string,
+    branch: string,
+    filePath: string,
+    content: string,
+    message: string,
+    encoding: 'utf-8' | 'base64' = 'utf-8'
+  ): Promise<void> {
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+    // 先获取文件 SHA（如果已存在）
+    let sha = '';
+    try {
+      const getResponse = await fetch(`${apiUrl}?ref=${branch}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Blog-Platform/1.0'
+        }
+      });
+
+      if (getResponse.ok) {
+        const fileData = await getResponse.json();
+        sha = fileData.sha;
+      }
+    } catch {
+      // 文件不存在，继续创建
+    }
+
+    const contentEncoded = encoding === 'base64' ? content : btoa(unescape(encodeURIComponent(content)));
+
+    const putResponse = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Blog-Platform/1.0'
+      },
+      body: JSON.stringify({
+        message,
+        content: contentEncoded,
+        branch,
+        ...(sha && { sha })
+      })
+    });
+
+    if (!putResponse.ok) {
+      let errorMessage = `GitHub API 错误: ${putResponse.status}`;
+      try {
+        const errorData = await putResponse.json();
+        errorMessage += ` - ${errorData.message}`;
+      } catch {
+        const errorText = await putResponse.text();
+        errorMessage += ` - ${errorText.substring(0, 200)}`;
+      }
+      throw new Error(errorMessage);
+    }
+  };
+
+  /**
+   * 本地环境：保存到本地目录
+   */
+  const saveToLocal = async (authorStr: string, contentStr: string, imgs: ImageItem[]) => {
+    const response = await fetch('/api/moments/local', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ author: authorStr, content: contentStr, images: imgs })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || '本地保存失败');
+    }
+
+    return response.json();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -72,28 +200,10 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     try {
       const isGitHubPages = window.location.hostname.includes('github.io');
 
-      let apiUrl: string;
       if (isGitHubPages) {
-        apiUrl = '/api/moments';
+        await submitToGitHub(author.trim(), content.trim(), images);
       } else {
-        apiUrl = '/api/moments/local';
-      }
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          author: author.trim(),
-          content: content.trim(),
-          images,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '发布失败');
+        await saveToLocal(author.trim(), content.trim(), images);
       }
 
       setMessage('动态发布成功！');
