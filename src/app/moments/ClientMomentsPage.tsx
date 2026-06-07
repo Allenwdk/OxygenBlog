@@ -213,7 +213,7 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {sortedPosts.map((post, index) => (
+                {sortedPosts.map((post) => (
                   <MomentCard
                     key={post.id}
                     post={{ ...post, onClick: () => openDetail(post.slug) }}
