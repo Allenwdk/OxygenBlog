@@ -249,8 +249,13 @@ author: ${formData.author}
       const fullContent = generateFrontMatter() + formData.content;
       const fileName = generateFileName();
 
-      // 检测是否在 GitHub Pages 环境
-      const isGitHubPages = window.location.hostname.includes('github.io');
+      // 检测是否在 GitHub Pages / 静态导出环境（API 路由不可用）
+      const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER;
+      const hostname = window.location.hostname;
+      const isGitHubPages =
+        hostname.includes('github.io') ||
+        (owner && hostname.endsWith(`${owner}.github.io`)) ||
+        !owner;
 
       if (isGitHubPages) {
         // GitHub Pages 环境 - 使用 API 提交到仓库

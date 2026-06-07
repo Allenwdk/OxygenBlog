@@ -205,9 +205,15 @@ ${contentStr}`;
     setMessage('');
 
     try {
-      const isGitHubPages = window.location.hostname.includes('github.io');
+      // 检测是否在 GitHub Pages / 静态导出环境（API 路由不可用）
+      const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER;
+      const hostname = window.location.hostname;
+      const isStaticExport =
+        hostname.includes('github.io') ||
+        (owner && hostname.endsWith(`${owner}.github.io`)) ||
+        !owner;
 
-      if (isGitHubPages) {
+      if (isStaticExport) {
         await submitToGitHub(author.trim(), content.trim(), images);
       } else {
         await saveToLocal(author.trim(), content.trim(), images);
