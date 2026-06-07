@@ -136,7 +136,14 @@ ${contentStr}`;
       // 文件不存在，继续创建
     }
 
-    const contentEncoded = encoding === 'base64' ? content : btoa(unescape(encodeURIComponent(content)));
+    let contentEncoded: string;
+    if (encoding === 'base64') {
+      // Content is already base64-encoded (e.g. image data), use as-is
+      contentEncoded = content;
+    } else {
+      // Plain text: convert to UTF-8 then base64 for GitHub API
+      contentEncoded = btoa(unescape(encodeURIComponent(content)));
+    }
 
     const putResponse = await fetch(apiUrl, {
       method: 'PUT',
