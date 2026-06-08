@@ -93,7 +93,8 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     let imageTags = '';
     for (const image of imgs) {
       if (image.data.startsWith('data:')) {
-        imageTags += `<img src="${image.data}" alt="${image.name}" />\n`;
+        const imageName = image.name || 'image.png';
+        imageTags += `<img src="${imageName}" alt="${imageName}" />\n`;
       }
     }
 
