@@ -150,7 +150,12 @@ ${contentStr}${imageTags}`;
     });
     if (!commitObjResp.ok) throw new Error('无法获取 commit 对象');
     const commitObj = await commitObjResp.json();
-    const rootTreeSha = commitObj.tree_sha;
+    console.log('[batchCommit] commitObj keys:', Object.keys(commitObj));
+    console.log('[batchCommit] tree_sha:', commitObj.tree_sha);
+    console.log('[batchCommit] tree:', JSON.stringify(commitObj.tree));
+    // 兼容两种 API 响应格式：GET /git/commits/{sha} 或 POST /git/commits
+    const rootTreeSha = commitObj.tree?.sha ?? commitObj.tree_sha;
+    if (!rootTreeSha) throw new Error(`无法获取 root tree SHA: ${JSON.stringify(commitObj)}`);
 
     // Step 2: 递归获取当前树 entries（保留已有文件）
     function getTreeEntriesRecursive(treePath: string, recursive: boolean): Promise<any[]> {
