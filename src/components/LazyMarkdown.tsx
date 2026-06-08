@@ -83,7 +83,9 @@ export default function LazyMarkdown({ content, components }: LazyMarkdownProps)
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('[LazyMarkdown] content:', JSON.stringify(content.slice(0, 100)));
     loadPlugins().then((loadedPlugins) => {
+      console.log('[LazyMarkdown] plugins loaded');
       setPlugins(loadedPlugins);
       setIsLoading(false);
     }).catch((error) => {
