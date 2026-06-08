@@ -70,12 +70,12 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
   };
 
   /**
-   * GitHub Pages 环境：直接调用 GitHub API 推送文件到仓库
+   * GitHub Pages 环境：通过 git/trees API 一次性创建所有文件到一个 commit
    */
   const submitToGitHub = async (authorStr: string, contentStr: string, imgs: ImageItem[]) => {
     const token = process.env.NEXT_PUBLIC_BLOG_GITHUB_TOKEN;
-    const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER;
-    const repo = process.env.NEXT_PUBLIC_BLOG_GITHUB_REPO;
+    const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER || '';
+    const repo = process.env.NEXT_PUBLIC_BLOG_GITHUB_REPO || '';
     const branch = process.env.NEXT_PUBLIC_BLOG_GITHUB_BRANCH || 'main';
 
     if (!token || !owner || !repo) {
@@ -86,9 +86,8 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     const now = new Date();
     const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
     const dirPath = `src/content/moments/${authorStr}/${timestamp}`;
-    const contentFilePath = `${dirPath}/content.md`;
 
-    // 生成 front matter + 正文内容 + 图片引用
+    // 生成 front matter + 正文内容 + 图片引用（相对路径）
     const isoDate = new Date().toISOString();
     let imageTags = '';
     for (const image of imgs) {
@@ -98,100 +97,180 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
       }
     }
 
+    // 构建所有文件: content.md + images
+    const files: Array<{ path: string; content: string; encoding: 'utf-8' | 'base64' }> = [];
+
     const fullContent = `---
 author: ${authorStr}
 date: ${isoDate}
 ---
 
 ${contentStr}${imageTags}`;
+    files.push({ path: `${dirPath}/content.md`, content: fullContent, encoding: 'utf-8' });
 
-    const commitMessage = `发布动态: ${authorStr} - ${timestamp}`;
-
-    // 上传 content.md
-    await uploadFileToGitHub(token, owner, repo, branch, contentFilePath, fullContent, commitMessage);
-
-    // 上传图片（如果有）
     for (const image of imgs) {
       const imageName = image.name || 'image.png';
       const imagePath = `${dirPath}/${imageName}`;
-      // Remove the data URL prefix before base64 encoding
-      const base64Data = image.data.split(',')[1] || image.data;
-      await uploadFileToGitHub(token, owner, repo, branch, imagePath, base64Data, commitMessage, 'base64');
+      const base64Data = image.data.replace(/^data:[^;]+;base64,/, '');
+      files.push({ path: imagePath, content: base64Data, encoding: 'base64' });
     }
 
-    return { path: contentFilePath, timestamp };
+    const commitMessage = `发布动态: ${authorStr} - ${timestamp}`;
+
+    // 通过 git/trees API 一次性创建所有文件到一个 commit
+    await batchCommitFiles(token, owner, repo, branch, files, commitMessage);
+
+    return { path: `${dirPath}/content.md`, timestamp };
   };
 
   /**
-   * 通过 GitHub API 上传文件到仓库
+   * 通过 GitHub Git Trees API 批量创建文件到一个 commit
    */
-  async function uploadFileToGitHub(
+  async function batchCommitFiles(
     token: string,
     owner: string,
     repo: string,
     branch: string,
-    filePath: string,
-    content: string,
-    message: string,
-    encoding: 'utf-8' | 'base64' = 'utf-8'
+    files: Array<{ path: string; content: string; encoding: 'utf-8' | 'base64' }>,
+    commitMessage: string
   ): Promise<void> {
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+    // Step 1: 获取当前 main 的 commit SHA 和 tree SHA
+    const refUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
+    const refResp = await fetch(refUrl, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!refResp.ok) throw new Error('无法获取分支引用');
+    const refData = await refResp.json();
+    const commitSha = refData.object.sha;
 
-    // 先获取文件 SHA（如果已存在）
-    let sha = '';
+    // Step 2: 递归获取当前树 entries（保留已有文件）
+    function getTreeEntriesRecursive(treePath: string, recursive: boolean): Promise<any[]> {
+      const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${treePath}${recursive ? '?recursive=1' : ''}`;
+      return fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+      }).then(r => {
+        if (!r.ok) throw new Error(`Failed to get tree at ${treePath}`);
+        return r.json();
+      }).then(data => {
+        const entries = recursive ? data.tree : (data.entries || []);
+        // Recurse into sub-trees if not requesting full recursion
+        if (!recursive) {
+          const promises = entries
+            .filter(e => e.type === 'tree')
+            .map(e => getTreeEntriesRecursive(e.path, false));
+          return Promise.all(promises).then(results => {
+            const children: any[] = [];
+            results.forEach(arr => children.push(...arr));
+            return [...entries, ...children];
+          });
+        }
+        return entries;
+      });
+    }
+
+    // Fetch full tree with recursion=1
+    let existingEntries: any[];
     try {
-      const getResponse = await fetch(`${apiUrl}?ref=${branch}`, {
+      existingEntries = await getTreeEntriesRecursive('', true);
+    } catch {
+      existingEntries = [];
+    }
+
+    // Step 3: 创建新 blobs (批量 API)
+    const blobMap: Record<string, string> = {};
+    for (const file of files) {
+      if (!file.content) continue;
+
+      let contentEncoded: string;
+      if (file.encoding === 'utf-8') {
+        contentEncoded = btoa(unescape(encodeURIComponent(file.content)));
+      } else {
+        contentEncoded = file.content; // already base64
+      }
+
+      const blobResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/blobs`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Blog-Platform/1.0'
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: contentEncoded, encoding: file.encoding })
       });
 
-      if (getResponse.ok) {
-        const fileData = await getResponse.json();
-        sha = fileData.sha;
+      if (!blobResp.ok) throw new Error(`创建 blob 失败: ${blobResp.status}`);
+      const blobData = await blobResp.json();
+      blobMap[file.path] = blobData.sha;
+    }
+
+    // Step 4: 构建 tree entries（保留旧条目 + 新文件覆盖）
+    const newTreeEntries = [...existingEntries];
+    for (const file of files) {
+      const sha = blobMap[file.path];
+      if (!sha) continue;
+
+      const existingIdx = newTreeEntries.findIndex(e => e.path === file.path);
+      if (existingIdx >= 0) {
+        newTreeEntries[existingIdx] = { path: file.path, mode: '100644', type: 'blob', sha };
+      } else {
+        newTreeEntries.push({ path: file.path, mode: '100644', type: 'blob', sha });
       }
-    } catch {
-      // 文件不存在，继续创建
     }
 
-    let contentEncoded: string;
-    if (encoding === 'base64') {
-      // Content is already base64-encoded (e.g. image data), use as-is
-      contentEncoded = content;
-    } else {
-      // Plain text: convert to UTF-8 then base64 for GitHub API
-      contentEncoded = btoa(unescape(encodeURIComponent(content)));
-    }
-
-    const putResponse = await fetch(apiUrl, {
-      method: 'PUT',
+    // Step 5: 创建新 tree
+    const treeResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees`, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Blog-Platform/1.0'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message,
-        content: contentEncoded,
-        branch,
-        ...(sha && { sha })
+        base_tree: '', // discard the old root tree
+        tree: newTreeEntries
       })
     });
 
-    if (!putResponse.ok) {
-      let errorMessage = `GitHub API 错误: ${putResponse.status}`;
-      try {
-        const errorData = await putResponse.json();
-        errorMessage += ` - ${errorData.message}`;
-      } catch {
-        const errorText = await putResponse.text();
-        errorMessage += ` - ${errorText.substring(0, 200)}`;
-      }
-      throw new Error(errorMessage);
+    if (!treeResp.ok) {
+      const errText = await treeResp.text();
+      throw new Error(`创建 tree 失败: ${treeResp.status} - ${errText.substring(0, 500)}`);
     }
+    const treeData = await treeResp.json();
+
+    // Step 6: 创建 commit（parent 是当前分支的 commit）
+    const commitUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits`;
+    const commitResp = await fetch(commitUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: commitMessage,
+        tree: treeData.sha,
+        parents: [commitSha]
+      })
+    });
+
+    if (!commitResp.ok) {
+      const errText = await commitResp.text();
+      throw new Error(`创建 commit 失败: ${commitResp.status} - ${errText.substring(0, 500)}`);
+    }
+
+    // Step 7: 更新分支引用到新 commit
+    const updateUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
+    const updateResp = await fetch(updateUrl, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sha: treeData.commit.sha })
+    });
+
+    if (!updateResp.ok) throw new Error('更新分支引用失败');
   };
 
   /**
