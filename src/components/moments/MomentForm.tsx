@@ -134,7 +134,7 @@ ${contentStr}${imageTags}`;
     files: Array<{ path: string; content: string; encoding: 'utf-8' | 'base64' }>,
     commitMessage: string
   ): Promise<void> {
-    // Step 1: 获取当前 main 的 commit SHA 和 tree SHA
+    // Step 1: 获取当前 commit SHA 和 root tree SHA
     const refUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
     const refResp = await fetch(refUrl, {
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
@@ -142,6 +142,15 @@ ${contentStr}${imageTags}`;
     if (!refResp.ok) throw new Error('无法获取分支引用');
     const refData = await refResp.json();
     const commitSha = refData.object.sha;
+
+    // 获取 commit 对象以拿到 root tree SHA
+    const commitObjUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits/${commitSha}`;
+    const commitObjResp = await fetch(commitObjUrl, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!commitObjResp.ok) throw new Error('无法获取 commit 对象');
+    const commitObj = await commitObjResp.json();
+    const rootTreeSha = commitObj.tree.sha;
 
     // Step 2: 递归获取当前树 entries（保留已有文件）
     function getTreeEntriesRecursive(treePath: string, recursive: boolean): Promise<any[]> {
@@ -171,7 +180,7 @@ ${contentStr}${imageTags}`;
     // Fetch full tree with recursion=1
     let existingEntries: any[];
     try {
-      existingEntries = await getTreeEntriesRecursive('', true);
+      existingEntries = await getTreeEntriesRecursive(rootTreeSha, true);
     } catch {
       existingEntries = [];
     }
@@ -226,7 +235,7 @@ ${contentStr}${imageTags}`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        base_tree: '', // discard the old root tree
+        base_tree: rootTreeSha, // include existing entries in new tree
         tree: newTreeEntries
       })
     });
