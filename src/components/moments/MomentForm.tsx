@@ -150,7 +150,7 @@ ${contentStr}${imageTags}`;
     });
     if (!commitObjResp.ok) throw new Error('无法获取 commit 对象');
     const commitObj = await commitObjResp.json();
-    const rootTreeSha = commitObj.tree.sha;
+    const rootTreeSha = commitObj.tree_sha;
 
     // Step 2: 递归获取当前树 entries（保留已有文件）
     function getTreeEntriesRecursive(treePath: string, recursive: boolean): Promise<any[]> {
