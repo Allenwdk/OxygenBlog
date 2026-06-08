@@ -157,7 +157,7 @@ ${contentStr}${imageTags}`;
         if (!recursive) {
           const promises = entries
             .filter((e: { type: string; path: string }) => e.type === 'tree')
-            .map(e => getTreeEntriesRecursive(e.path, false));
+            .map((e: { type: string; path: string }) => getTreeEntriesRecursive(e.path, false));
           return Promise.all(promises).then(results => {
             const children: any[] = [];
             results.forEach(arr => children.push(...arr));
