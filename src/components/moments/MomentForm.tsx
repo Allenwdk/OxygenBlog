@@ -28,39 +28,38 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     fileInputRef.current?.click();
   }, [isReadingImages]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setIsReadingImages(true);
-    let loadedCount = 0;
-    const newImages: ImageItem[] = [];
+    setMessage('');
+    setMessageType('success');
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Data = reader.result as string;
-        newImages.push({
-          name: file.name,
-          data: base64Data,
-        });
-        loadedCount++;
+    try {
+      // Promise-based FileReader to avoid callback race conditions
+      const results = await Promise.all(
+        Array.from(files).map((file) => new Promise<ImageItem>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve({ name: file.name, data: reader.result as string });
+          reader.onerror = () => reject(new Error(`Failed to read "${file.name}"`));
+          // Timeout after 30 seconds per file
+          setTimeout(() => reject(new Error(`Read timeout for "${file.name}"`)), 30000);
+          reader.readAsDataURL(file);
+        }))
+      );
 
-        if (loadedCount === files.length) {
-          setImages((prev) => [...prev, ...newImages]);
-          setImageCount(prev => prev + files.length);
-          setIsReadingImages(false);
-          setMessage(`已添加 ${files.length} 张图片`);
-          setMessageType('success');
-        }
-      };
-      reader.onerror = () => {
-        setIsReadingImages(false);
-        setMessage(`图片 "${file.name}" 读取失败，请重试`);
-        setMessageType('error');
-      };
-      reader.readAsDataURL(file);
-    });
+      setImages((prev) => [...prev, ...results]);
+      setImageCount(prev => prev + results.length);
+      setMessage(`已添加 ${results.length} 张图片`);
+      setMessageType('success');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '图片读取失败';
+      setMessage(msg);
+      setMessageType('error');
+    } finally {
+      setIsReadingImages(false);
+    }
 
     e.target.value = '';
   };
@@ -228,17 +227,26 @@ ${contentStr}${imageTags}`;
       const authorStr = author.trim();
       const contentStr = content.trim();
 
-      // 优先尝试本地保存，如果 API 路由不可用（静态导出 / 405），自动降级到直传 GitHub
+      // Try local save first, fall back to direct GitHub upload (static export)
       let success = false;
       try {
         await saveToLocal(authorStr, contentStr, images);
         success = true;
       } catch {
         // Local API not available (static export), fall back to direct GitHub upload
+        try {
+          await submitToGitHub(authorStr, contentStr, images);
+          success = true;
+        } catch (githubErr) {
+          throw githubErr;
+        }
       }
 
       if (!success) {
-        await submitToGitHub(authorStr, contentStr, images);
+        // This shouldn't happen but just in case
+        setMessage('发布失败: 无法连接到服务');
+        setMessageType('error');
+        return;
       }
 
       setMessage('动态发布成功！');
