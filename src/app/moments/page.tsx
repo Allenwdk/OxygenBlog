@@ -31,12 +31,13 @@ interface MomentFrontMatter {
 
 function processContent(content: string): string {
   // 处理 <img> 标签中的 src 属性
-  content = content.replace(/(<img\s+[^>]*src=["'])([^"']+)(['"])/gi, (match, prefix, src, suffix) => {
+  content = content.replace(/(<img\s+[^>]*src=["'])([^"']+)(['"])/gi, (_match, prefix: string, src: string, suffix: string) => {
     return `${prefix}${processImagePath(src)}${suffix}`;
   });
   // 处理 markdown 图片 ![alt](src)
-  content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-    return `![${alt}](${processImagePath(src)})`;
+  content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, _alt: string | undefined, src: string | undefined) => {
+    if (src === undefined || !_alt) return _match;
+    return `![${_alt}](${processImagePath(src)})`;
   });
   return content;
 }
