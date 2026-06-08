@@ -82,24 +82,23 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
       throw new Error('GitHub 配置不完整，请检查环境变量');
     }
 
-    // 生成时间戳和目录路径（图片存到根目录 moments/，GitHub Pages 可直接访问）
+    // 生成时间戳和目录路径（图片和 content.md 存到同目录下 public/shared/moments/）
     const now = new Date();
     const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-    const contentDirPath = `src/content/moments/${authorStr}/${timestamp}`;
-    const imagesDirPath = `moments/${authorStr}/${timestamp}`;
+    const sharedDirPath = `public/shared/moments/${authorStr}/${timestamp}`;
 
-    // 生成 front matter + 正文内容 + 图片引用（绝对路径，GitHub Pages 可直接加载）
+    // 生成 front matter + 正文内容 + 图片引用（相对路径，纯文件名）
     const isoDate = new Date().toISOString();
     let imageTags = '';
     for (const image of imgs) {
       if (image.data.startsWith('data:')) {
         const imageName = image.name || 'image.png';
-        // 使用绝对路径，类似背景图的 /Ayaka.png
-        imageTags += `![${imageName}]/moments/${authorStr}/${timestamp}/${imageName})\n`;
+        // 使用纯文件名（相对路径，指向同目录下的文件）
+        imageTags += `![${imageName}](${imageName})\n`;
       }
     }
 
-    // 构建所有文件: content.md（存到 src/content/）+ 图片文件（存到仓库根目录 moments/）
+    // 构建所有文件: content.md（存到 public/shared/moments/，这样 Next.js 导出可访问）+ 图片文件
     const files: Array<{ path: string; content: string; encoding: 'utf-8' | 'base64' }> = [];
 
     const fullContent = `---
@@ -108,14 +107,14 @@ date: ${isoDate}
 ---
 
 ${contentStr}${imageTags}`;
-    files.push({ path: `${contentDirPath}/content.md`, content: fullContent, encoding: 'utf-8' });
+    files.push({ path: `${sharedDirPath}/content.md`, content: fullContent, encoding: 'utf-8' });
 
-    // 将图片以 base64 编码写入仓库（存到根目录 moments/ 下，GitHub Pages 可直接访问）
+    // 将图片以 base64 编码写入仓库（存到 public/shared/moments/ 下，静态导出可访问）
     for (const image of imgs) {
       if (!image.data.startsWith('data:')) continue;
       // 从 data URL 提取纯 base64 内容
       const base64Data = image.data.replace(/^data:image\/\w+;base64,/, '');
-      files.push({ path: `${imagesDirPath}/${image.name}`, content: base64Data, encoding: 'base64' });
+      files.push({ path: `${sharedDirPath}/${image.name}`, content: base64Data, encoding: 'base64' });
     }
 
     const commitMessage = `发布动态: ${authorStr} - ${timestamp}`;
@@ -123,7 +122,7 @@ ${contentStr}${imageTags}`;
     // 通过 git/trees API 一次性创建所有文件到一个 commit
     await batchCommitFiles(token, owner, repo, branch, files, commitMessage);
 
-    return { path: `${contentDirPath}/content.md`, timestamp };
+    return { path: `${sharedDirPath}/content.md`, timestamp };
   };
 
   /**

@@ -3,43 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
-
-/**
- * 判断是否为外部图片链接
- */
-function isExternalImage(src: string): boolean {
-  return src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//');
-}
-
-/**
- * 处理图片路径，正确添加basePath支持
- * 对于外部图片使用Next.js Image组件，对于本地图片需要手动添加basePath
- */
-function processImagePath(src: string): string {
-  // 如果是外部链接，直接返回
-  if (isExternalImage(src)) {
-    return src;
-  }
-  
-  // 获取basePath
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-  
-  // 如果是相对路径（如 ./assets/example.svg 或 ../assets/example.svg），转换为绝对路径
-  if (src.startsWith('./') || src.startsWith('../')) {
-    // 移除相对路径前缀，转换为从public目录开始的路径
-    const cleanPath = src.replace(/^\.\.?\//, '');
-    return basePath ? `${basePath}/${cleanPath}` : `/${cleanPath}`;
-  }
-  
-  // 如果已经是绝对路径（以/开头），添加basePath
-  if (src.startsWith('/')) {
-    return basePath ? `${basePath}${src}` : src;
-  }
-  
-  // 其他情况，假设是相对于public目录的路径
-  return basePath ? `${basePath}/${src}` : `/${src}`;
-}
-
+import { processImagePath, isExternalImage } from '@/lib/process-image-path';
 interface OptimizedImageProps {
   src: string;
   alt: string;

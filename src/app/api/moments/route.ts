@@ -140,24 +140,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 生成时间戳和目录路径
+   // 生成时间戳和目录路径（图片和 content.md 存到同目录 public/shared/moments/）
     const timestamp = generateTimestamp();
-    const dirPath = `src/content/moments/${author}/${timestamp}`;
-    const contentFilePath = `${dirPath}/content.md`;
+    const sharedDirPath = `public/shared/moments/${author}/${timestamp}`;
+    const contentFilePath = `${sharedDirPath}/content.md`;
 
-    // 生成 front matter + 正文内容
+    // 生成 front matter + 图片标签（相对路径，纯文件名）
     const frontMatter = generateFrontMatter(author);
-    const fullContent = `${frontMatter}\n\n${content}`;
-
-    // 上传 content.md
-    const commitMessage = `发布动态: ${author} - ${timestamp}`;
-    await uploadFile(owner, repo, branch, token, contentFilePath, fullContent, commitMessage);
-
-    // 上传图片（如果有）
+    let imageTags = '';
     if (images && images.length > 0) {
       for (const image of images) {
         const imageName = image.name || 'image.png';
-        const imagePath = `${dirPath}/${imageName}`;
+        imageTags += `<img src="${imageName}" alt="${imageName}" />\n`;
+      }
+    }
+
+    // 上传 content.md
+    const commitMessage = `发布动态: ${author} - ${timestamp}`;
+    await uploadFile(owner, repo, branch, token, contentFilePath, `${frontMatter}\n\n${content}${imageTags}`, commitMessage);
+
+    // 上传图片（存到同目录，静态导出可访问）
+    if (images && images.length > 0) {
+      for (const image of images) {
+        const imageName = image.name || 'image.png';
+        const imagePath = `${sharedDirPath}/${imageName}`;
         const imageBase64 = Buffer.from(image.data, 'base64');
 
         await uploadFile(

@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react';
 import { useState, useCallback } from 'react';
+import { processImagePath } from '@/lib/process-image-path';
 
 /**
  * 动态文章接口
@@ -74,7 +75,7 @@ export default function MomentCard({ post }: MomentCardProps) {
     const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let match;
     while ((match = imgRegex.exec(post.excerpt)) !== null) {
-      results.push(match[2]); // src
+      results.push(processImagePath(match[2])); // src
     }
     return results;
   })();

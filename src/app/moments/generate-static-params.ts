@@ -2,12 +2,12 @@ import fs from 'fs';
 import path from 'path';
 
 export function generateStaticParams() {
-  const contentDir = path.join(process.cwd(), 'src/content/moments');
-  
+  const contentDir = path.join(process.cwd(), 'public/shared/moments');
+
   if (!fs.existsSync(contentDir)) {
     return [];
   }
-  
+
   return scanMarkdownFiles(contentDir, contentDir).map(({ slug }) => ({ slug }));
 }
 

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { formatBlogDate } from '@/lib/utils';
+import { processImagePath } from '@/lib/process-image-path';
 import ClientMomentsPage from './ClientMomentsPage';
 
 /**
@@ -28,18 +29,40 @@ interface MomentFrontMatter {
   author?: string;
 }
 
+function processContent(content: string): string {
+  // 处理 <img> 标签中的 src 属性
+  content = content.replace(/(<img\s+[^>]*src=["'])([^"']+)(['"])/gi, (match, prefix, src, suffix) => {
+    return `${prefix}${processImagePath(src)}${suffix}`;
+  });
+  // 处理 markdown 图片 ![alt](src)
+  content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+    return `![${alt}](${processImagePath(src)})`;
+  });
+  return content;
+}
+
 /**
- * 从 content 中提取 markdown 图片 src
+ * 从 content 中提取 markdown 图片 src，并通过 processImagePath 添加 basePath
  */
 function extractImages(content: string): string[] {
   const images: string[] = [];
   const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
-    // match[2] is the src
-    images.push(match[2]);
+    images.push(processImagePath(match[2]));
   }
   return images;
+}
+
+function extractImgTags(content: string): string[] {
+  const images: string[] = [];
+  const imgTagRegex = /<img\s+[^>]*src=["']([^"']+)["'][^>]*>/gi;
+  let match;
+  while ((match = imgTagRegex.exec(content)) !== null) {
+    images.push(processImagePath(match[1]));
+  }
+  return images;
+ return images;
 }
 
 /**
@@ -87,7 +110,7 @@ function scanMarkdownFiles(dir: string, baseDir: string): Array<{filePath: strin
  */
 function getAllMoments(): MomentPost[] {
   try {
-    const contentDir = path.join(process.cwd(), 'src/content/moments');
+    const contentDir = path.join(process.cwd(), 'public/shared/moments');
     
     if (!fs.existsSync(contentDir)) {
       return [];
@@ -103,7 +126,7 @@ function getAllMoments(): MomentPost[] {
         const { data } = matter(fileContent);
         const frontMatter = data as MomentFrontMatter;
 
-        // 获取文章内容用于截取 excerpt
+ // 获取文章内容用于截取 excerpt
         const { content } = matter(fileContent);
 
         // 标题处理：优先使用元数据中的 title，否则使用 slug 最后一部分
@@ -111,13 +134,16 @@ function getAllMoments(): MomentPost[] {
         const defaultTitle = slugParts[slugParts.length - 1] || '动态';
         const title = frontMatter.title || defaultTitle;
 
-        const images = extractImages(content);
+        // 提取 markdown 图片和 <img> 标签中的图片路径（已处理 basePath）
+        const mdImages = extractImages(content);
+        const imgTagImages = extractImgTags(content);
+        const images = [...mdImages, ...imgTagImages];
 
-        momentPosts.push({
+       momentPosts.push({
           id: slug,
           title: title,
           excerpt: frontMatter.excerpt || content.slice(0, 100),
-          content: content,
+          content: processContent(content),
           date: formatBlogDate(frontMatter.date),
           author: frontMatter.author || 'Unknown',
           slug: slug,
