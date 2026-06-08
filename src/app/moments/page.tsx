@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { formatBlogDate } from '@/lib/utils';
 import ClientMomentsPage from './ClientMomentsPage';
 
 /**
@@ -29,17 +28,50 @@ interface MomentFrontMatter {
 }
 
 /**
- * 从 content 中提取 markdown 图片 src
+ * 从 content 中提取图片 src（支持 Markdown 语法和 HTML img 标签）
  */
 function extractImages(content: string): string[] {
   const images: string[] = [];
-  const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+
+  // 提取 Markdown 图片语法: ![alt](src)
+  const mdRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   let match;
-  while ((match = imgRegex.exec(content)) !== null) {
-    // match[2] is the src
+  while ((match = mdRegex.exec(content)) !== null) {
     images.push(match[2]);
   }
+
+  // 提取 HTML img 标签: <img src="..." ... />
+  const htmlRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  while ((match = htmlRegex.exec(content)) !== null) {
+    images.push(match[1]);
+  }
+
   return images;
+}
+
+/**
+ * 解析图片路径，根据当前 basePath 调整为可访问的完整路径
+ * GitHub Pages 子路径部署时，需要在 /moments/... 前加上 basePath
+ */
+function resolveImagePath(src: string): string {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  // 只处理以 /moments/ 开头的根相对路径
+  if (src.startsWith('/moments/') && basePath) {
+    return `${basePath}${src}`;
+  }
+  return src;
+}
+
+/**
+ * 处理 content 中所有图片路径（Markdown 语法和 HTML img 标签）
+ * 将 /moments/... 路径根据 basePath 转换为可访问的完整路径
+ */
+function resolveContentImages(content: string): string {
+  return content
+    // 处理 Markdown 图片语法: ![alt](/moments/...)
+    .replace(/(!\[[^\]]*\]\()(\/moments\/[^)]+)(\))/g, (match: string, p1: string, p2: string, p3: string) => `${p1}${resolveImagePath(p2)}${p3}`)
+    // 处理 HTML img 标签: <img src="/moments/..." />
+    .replace(/(<img[^>]+src=["'])(\/moments\/[^"']+)(["'])/gi, (match: string, p1: string, p2: string, p3: string) => `${p1}${resolveImagePath(p2)}${p3}`);
 }
 
 /**
@@ -111,17 +143,36 @@ function getAllMoments(): MomentPost[] {
         const defaultTitle = slugParts[slugParts.length - 1] || '动态';
         const title = frontMatter.title || defaultTitle;
 
-        const images = extractImages(content);
+        const rawImages = extractImages(content);
+        const images = rawImages.length > 0 ? rawImages.map(resolveImagePath) : undefined;
+
+        // 保留原始 ISO 8601 日期字符串，不截断为 YYYY-MM-DD
+        // 客户端组件需要根据完整时间计算相对时间（如"刚刚"、"5分钟前"）
+        const rawDate = frontMatter.date;
+        let resolvedDate: string;
+        if (rawDate && !isNaN(new Date(rawDate).getTime())) {
+          resolvedDate = rawDate;
+        } else {
+          // 如果 front matter 中没有有效日期，尝试从目录名（时间戳）解析
+          const timestampMatch = slug.match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
+          if (timestampMatch) {
+            const [, y, m, d, h, min, s] = timestampMatch;
+            resolvedDate = new Date(`${y}-${m}-${d}T${h}:${min}:${s}`).toISOString();
+          } else {
+            resolvedDate = new Date().toISOString();
+          }
+        }
 
         momentPosts.push({
           id: slug,
           title: title,
           excerpt: frontMatter.excerpt || content.slice(0, 100),
-          content: content,
-          date: formatBlogDate(frontMatter.date),
+          // 对 content 中的图片路径也进行 basePath 转换，确保详情页图片能正确加载
+          content: resolveContentImages(content),
+          date: resolvedDate,
           author: frontMatter.author || 'Unknown',
           slug: slug,
-          images: images.length > 0 ? images : undefined
+          images: images
         });
       } catch (error) {
         console.error(`Error reading moment file ${relativePath}:`, error);

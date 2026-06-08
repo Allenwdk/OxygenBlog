@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 /**
  * 动态文章接口
@@ -55,17 +55,52 @@ export default function MomentCard({ post }: MomentCardProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showContentExpanded, setShowContentExpanded] = useState(false);
+  const [showCommentTip, setShowCommentTip] = useState(false);
+
+  // 从 localStorage 恢复点赞状态（以 slug 为唯一标识）
+  useEffect(() => {
+    try {
+      const key = `moment-like-${post.slug}`;
+      const stored = localStorage.getItem(key);
+      if (stored === '1') {
+        setLiked(true);
+        setLikeCount(1);
+      }
+    } catch {
+      // localStorage 不可用时静默失败
+    }
+  }, [post.slug]);
 
   const handleLike = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setLiked(!liked);
-    setLikeCount(prev => liked ? Math.max(0, prev - 1) : prev + 1);
-  }, [liked]);
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setLikeCount(newLiked ? 1 : 0);
+    try {
+      const key = `moment-like-${post.slug}`;
+      if (newLiked) {
+        localStorage.setItem(key, '1');
+      } else {
+        localStorage.removeItem(key);
+      }
+    } catch {
+      // localStorage 不可用时静默失败
+    }
+  }, [liked, post.slug]);
 
   // Truncate long content for feed view
   const isLongContent = post.excerpt.length > 200;
   const displayContent = showContentExpanded ? post.excerpt :
     isLongContent ? `${post.excerpt.slice(0, 200)}...` : post.excerpt;
+
+  // 处理图片路径中的 basePath（GitHub Pages 子路径部署需要）
+  const resolveImgPath = (src: string): string => {
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    if (src.startsWith('/moments/') && basePath) {
+      return `${basePath}${src}`;
+    }
+    return src;
+  };
 
   // Determine images to render: prefer extracted images, fall back to regex from content
   const images = post.images || (() => {
@@ -74,7 +109,7 @@ export default function MomentCard({ post }: MomentCardProps) {
     const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let match;
     while ((match = imgRegex.exec(post.excerpt)) !== null) {
-      results.push(match[2]); // src
+      results.push(resolveImgPath(match[2]));
     }
     return results;
   })();
@@ -155,6 +190,8 @@ export default function MomentCard({ post }: MomentCardProps) {
                 key={i}
                 src={src}
                 alt=""
+                loading="lazy"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 className="max-w-[200px] w-full h-auto rounded-xl border border-border/30 shadow-sm object-cover cursor-pointer hover:opacity-90 transition-opacity"
               />
             ))}
@@ -186,8 +223,12 @@ export default function MomentCard({ post }: MomentCardProps) {
 
           {/* Comment button */}
           <button
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            onClick={(e) => e.stopPropagation()}
+            className="relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCommentTip(true);
+              setTimeout(() => setShowCommentTip(false), 2000);
+            }}
           >
             <svg
               width="16"
@@ -201,6 +242,11 @@ export default function MomentCard({ post }: MomentCardProps) {
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
             <span>评论</span>
+            {showCommentTip && (
+              <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] bg-popover text-popover-foreground px-2 py-1 rounded shadow border">
+                评论功能开发中
+              </span>
+            )}
           </button>
 
           {/* Share button */}

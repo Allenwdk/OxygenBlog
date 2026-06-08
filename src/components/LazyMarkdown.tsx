@@ -6,21 +6,36 @@ import { motion } from 'motion/react';
 // 懒加载ReactMarkdown组件
 const ReactMarkdown = lazy(() => import('react-markdown'));
 
+/**
+ * 将内容中的 HTML img 标签转换为 Markdown 图片语法
+ * 这样可以在不启用 rehype-raw（避免 XSS）的情况下正确显示已有数据中的图片
+ */
+function convertHtmlImagesToMarkdown(content: string): string {
+  return content
+    // <img src="..." alt="..." />
+    .replace(/<img[^>]+src=["']([^"']+)["'][^>]*alt=["']([^"]*)["'][^>]*\/?>/gi, '![$2]($1)')
+    // <img alt="..." src="..." />
+    .replace(/<img[^>]+alt=["']([^"]*)["'][^>]*src=["']([^"']+)["'][^>]*\/?>/gi, '![$1]($2)')
+    // <img src="..." />
+    .replace(/<img[^>]+src=["']([^"']+)["'][^>]*\/?>/gi, '![]($1)');
+}
+
 // 动态导入插件
 const loadPlugins = async () => {
-  const [remarkGfm, remarkMath, remarkBreaks, remarkEmoji, rehypeKatex, rehypeRaw, rehypeSlug] = await Promise.all([
+  const [remarkGfm, remarkMath, remarkBreaks, remarkEmoji, rehypeKatex, rehypeSlug] = await Promise.all([
     import('remark-gfm'),
     import('remark-math'),
     import('remark-breaks'),
     import('remark-emoji'),
     import('rehype-katex'),
-    import('rehype-raw'),
     import('rehype-slug')
   ]);
-  
+
   return {
     remarkPlugins: [remarkGfm.default, remarkMath.default, remarkBreaks.default, remarkEmoji.default],
-    rehypePlugins: [rehypeKatex.default, rehypeRaw.default, rehypeSlug.default]
+    // 注意：移除了 rehype-raw，防止 XSS 攻击
+    // 已有数据中的 HTML img 标签会在传入前被 convertHtmlImagesToMarkdown 转换
+    rehypePlugins: [rehypeKatex.default, rehypeSlug.default]
   };
 };
 
@@ -126,7 +141,7 @@ export default function LazyMarkdown({ content, components }: LazyMarkdownProps)
           rehypePlugins={plugins.rehypePlugins}
           components={components}
         >
-          {content}
+          {convertHtmlImagesToMarkdown(content)}
         </ReactMarkdown>
       </motion.div>
     </Suspense>

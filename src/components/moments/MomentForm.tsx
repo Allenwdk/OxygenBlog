@@ -20,8 +20,34 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [imageCount, setImageCount] = useState(0);
+  const [showTokenInput, setShowTokenInput] = useState(false);
+  const [userToken, setUserToken] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * 安全获取 GitHub Token
+   * 优先使用用户手动输入的 Token（存储在 sessionStorage 中，更安全）
+   * 回退到环境变量（注意：NEXT_PUBLIC_ 前缀的变量会打包到静态 JS 中，存在暴露风险）
+   */
+  const getGitHubToken = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('blog_github_token');
+      if (stored) return stored;
+    }
+    return process.env.NEXT_PUBLIC_BLOG_GITHUB_TOKEN || '';
+  }, []);
+
+  /**
+   * 获取 GitHub 配置（ owner / repo / branch ）
+   */
+  const getGitHubConfig = useCallback(() => {
+    return {
+      owner: process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER || '',
+      repo: process.env.NEXT_PUBLIC_BLOG_GITHUB_REPO || '',
+      branch: process.env.NEXT_PUBLIC_BLOG_GITHUB_BRANCH || 'main',
+    };
+  }, []);
 
   const handleFileSelect = useCallback(() => {
     if (isReadingImages) return;
@@ -73,33 +99,34 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
    * GitHub Pages 环境：通过 git/trees API 一次性创建所有文件到一个 commit
    */
   const submitToGitHub = async (authorStr: string, contentStr: string, imgs: ImageItem[]) => {
-    const token = process.env.NEXT_PUBLIC_BLOG_GITHUB_TOKEN;
-    const owner = process.env.NEXT_PUBLIC_BLOG_GITHUB_OWNER || '';
-    const repo = process.env.NEXT_PUBLIC_BLOG_GITHUB_REPO || '';
-    const branch = process.env.NEXT_PUBLIC_BLOG_GITHUB_BRANCH || 'main';
+    const token = getGitHubToken();
+    const { owner, repo, branch } = getGitHubConfig();
 
     if (!token || !owner || !repo) {
-      throw new Error('GitHub 配置不完整，请检查环境变量');
+      throw new Error('GitHub 配置不完整，请检查环境变量或手动输入 Token');
     }
 
-    // 生成时间戳和目录路径（图片存到根目录 moments/，GitHub Pages 可直接访问）
+    // 生成时间戳和目录路径
+    // content.md 存到 src/content/moments/（构建时读取）
+    // 图片必须存到 public/moments/，Next.js 构建时才会将其复制到 out/ 并部署到 GitHub Pages
     const now = new Date();
     const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
     const contentDirPath = `src/content/moments/${authorStr}/${timestamp}`;
-    const imagesDirPath = `moments/${authorStr}/${timestamp}`;
+    const imagesDirPath = `public/moments/${authorStr}/${timestamp}`;
 
-    // 生成 front matter + 正文内容 + 图片引用（绝对路径，GitHub Pages 可直接加载）
+    // 生成 front matter + 正文内容 + 图片引用（使用根相对路径，部署后映射到 public/ 下的资源）
     const isoDate = new Date().toISOString();
     let imageTags = '';
     for (const image of imgs) {
       if (image.data.startsWith('data:')) {
         const imageName = image.name || 'image.png';
-        // 使用绝对路径，类似背景图的 /Ayaka.png
-        imageTags += `![${imageName}]/moments/${authorStr}/${timestamp}/${imageName})\n`;
+        // 使用以 / 开头的根相对路径，在 page.tsx 渲染时会根据 basePath 自动转换
+        // 注意：必须保持可移植性，不要在此处硬编码 basePath
+        imageTags += `![${imageName}](/moments/${authorStr}/${timestamp}/${imageName})\n`;
       }
     }
 
-    // 构建所有文件: content.md（存到 src/content/）+ 图片文件（存到仓库根目录 moments/）
+    // 构建所有文件: content.md（存到 src/content/）+ 图片文件（存到 public/moments/）
     const files: Array<{ path: string; content: string; encoding: 'utf-8' | 'base64' }> = [];
 
     const fullContent = `---
@@ -110,7 +137,7 @@ date: ${isoDate}
 ${contentStr}${imageTags}`;
     files.push({ path: `${contentDirPath}/content.md`, content: fullContent, encoding: 'utf-8' });
 
-    // 将图片以 base64 编码写入仓库（存到根目录 moments/ 下，GitHub Pages 可直接访问）
+    // 将图片以 base64 编码写入仓库（必须存到 public/moments/，Next.js 才会将其复制到 out/ 并部署）
     for (const image of imgs) {
       if (!image.data.startsWith('data:')) continue;
       // 从 data URL 提取纯 base64 内容
@@ -345,7 +372,7 @@ ${contentStr}${imageTags}`;
         return;
       }
 
-      setMessage('动态发布成功！');
+      setMessage('动态发布成功！请等待 3-5 分钟完成部署后刷新页面查看。');
       setMessageType('success');
 
       setAuthor('');
@@ -357,10 +384,7 @@ ${contentStr}${imageTags}`;
         onPublishSuccess();
       }
 
-      // Only auto-dismiss errors; success messages persist until dismissed
-      if (messageType === 'error') {
-        setTimeout(() => setMessage(''), 3000);
-      }
+      // 成功消息持续显示，不自动消失，提醒用户需要等待部署
     } catch (error) {
       setMessage(`发布失败: ${error instanceof Error ? error.message : '未知错误'}`);
       setMessageType('error');
@@ -390,6 +414,38 @@ ${contentStr}${imageTags}`;
           className="w-full text-sm font-medium bg-transparent border-none outline-none placeholder:text-muted-foreground/50 text-foreground"
           placeholder="你的名字"
         />
+      </div>
+
+      {/* GitHub Token 配置（可折叠） */}
+      <div className="px-4 pb-2">
+        <button
+          type="button"
+          onClick={() => setShowTokenInput(!showTokenInput)}
+          className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+        >
+          {showTokenInput ? '隐藏 Token 设置 ▲' : '配置 GitHub Token ▼'}
+        </button>
+        {showTokenInput && (
+          <div className="mt-2 space-y-2">
+            <input
+              type="password"
+              value={userToken}
+              onChange={(e) => {
+                setUserToken(e.target.value);
+                if (e.target.value) {
+                  sessionStorage.setItem('blog_github_token', e.target.value);
+                } else {
+                  sessionStorage.removeItem('blog_github_token');
+                }
+              }}
+              placeholder="在此输入 GitHub Token（更安全）"
+              className="w-full text-xs bg-transparent border border-border/40 rounded-md px-2 py-1.5 outline-none placeholder:text-muted-foreground/40 text-foreground"
+            />
+            <p className="text-[10px] text-muted-foreground/50 leading-relaxed">
+              提示：将 Token 填入此处可避免其被打包到静态资源中。若留空，则使用构建时注入的环境变量（存在暴露风险）。Token 仅保存在当前会话中，关闭页面后清除。
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Content textarea */}

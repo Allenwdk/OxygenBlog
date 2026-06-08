@@ -4,11 +4,6 @@ const nextConfig = {
   // 只在构建时启用静态导出，开发时禁用以避免 generateStaticParams 错误
   ...(process.env.NODE_ENV === "production" && { 
     output: "export",
-    // 忽略 API 路由在静态导出时的页面数据收集
-    webpack: (config: any) => {
-      config.ignoreWarnings = [{ module: /api\/moments\/detail/ }];
-      return config;
-    },
   }),
   trailingSlash: true,
   // 环境变量配置,供客户端组件使用
@@ -61,13 +56,13 @@ const nextConfig = {
     // 移除assetPrefix,basePath已经足够处理资源路径
   }),
   images: {
-    // 允许的外部图片域名
-    domains: [
-      "localhost",
-      "example.com",
-      "images.unsplash.com",
-      "cdn.jsdelivr.net",
-      "raw.githubusercontent.com",
+    // 允许的外部图片域名（使用 remotePatterns 替代已弃用的 domains）
+    remotePatterns: [
+      { protocol: 'https', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'example.com' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'cdn.jsdelivr.net' },
+      { protocol: 'https', hostname: 'raw.githubusercontent.com' },
     ],
     // 图片格式优化
     formats: ["image/webp", "image/avif"],

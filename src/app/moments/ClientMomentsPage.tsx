@@ -39,9 +39,9 @@ interface ClientMomentsPageProps {
  */
 export default function ClientMomentsPage({ initialPosts }: ClientMomentsPageProps) {
   const [posts] = useState<MomentPost[]>(initialPosts);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [detailData, setDetailData] = useState<MomentDetail | null>(null);
+  const [publishNotice, setPublishNotice] = useState('');
   const { containerStyle } = useBackgroundStyle('moments');
 
   const openDetail = useCallback((slug: string) => {
@@ -66,25 +66,15 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
     window.history.back();
   }, []);
 
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      const res = await fetch(`/api/moments/revalidate`, { method: 'POST' });
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        window.location.reload();
-      }
-    } catch {
-      window.location.reload();
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, []);
-
+  /**
+   * 发布成功后的处理
+   * 注意：GitHub Pages 为静态站点，新动态需要等待重新部署后才能显示
+   */
   const handlePublishSuccess = useCallback(() => {
-    handleRefresh();
-  }, [handleRefresh]);
+    setPublishNotice('动态已提交，请等待 3-5 分钟部署完成后刷新页面查看。');
+    // 静态站点无法通过简单刷新获取新内容，显示提示即可
+    setTimeout(() => setPublishNotice(''), 8000);
+  }, []);
 
   // Handle browser back/forward when closing detail view
   useEffect(() => {
@@ -148,6 +138,15 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
             className="mb-8"
           >
             <MomentForm onPublishSuccess={handlePublishSuccess} />
+            {publishNotice && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 text-xs text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2"
+              >
+                {publishNotice}
+              </motion.div>
+            )}
           </motion.div>
         )}
 
@@ -190,22 +189,20 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
                 <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
                   <LazyMarkdown content={detailData.content} />
                 </div>
+
+                {/* Comment section placeholder */}
+                <div className="mt-8 pt-6 border-t border-border/40">
+                  <div className="text-sm text-muted-foreground mb-4">
+                    评论
+                  </div>
+                  <div className="text-xs text-muted-foreground/60 bg-muted/30 rounded-lg px-4 py-3 text-center">
+                    评论功能正在开发中，敬请期待
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Refresh indicator */}
-        {isRefreshing && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center mb-6"
-          >
-            <span className="text-sm text-muted-foreground">刷新中...</span>
-          </motion.div>
-        )}
 
         {/* Timeline feed */}
         {!selectedSlug && (
