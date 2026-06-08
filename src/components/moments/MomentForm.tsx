@@ -16,19 +16,24 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
   const [content, setContent] = useState('');
   const [images, setImages] = useState<ImageItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReadingImages, setIsReadingImages] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [imageCount, setImageCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = useCallback(() => {
+    if (isReadingImages) return;
     fileInputRef.current?.click();
-  }, []);
+  }, [isReadingImages]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    setIsReadingImages(true);
+    let loadedCount = 0;
     const newImages: ImageItem[] = [];
 
     Array.from(files).forEach((file) => {
@@ -39,13 +44,20 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
           name: file.name,
           data: base64Data,
         });
+        loadedCount++;
 
-        if (newImages.length === files.length) {
+        if (loadedCount === files.length) {
           setImages((prev) => [...prev, ...newImages]);
+          setImageCount(prev => prev + files.length);
+          setIsReadingImages(false);
           setMessage(`已添加 ${files.length} 张图片`);
           setMessageType('success');
-          setTimeout(() => setMessage(''), 3000);
         }
+      };
+      reader.onerror = () => {
+        setIsReadingImages(false);
+        setMessage(`图片 "${file.name}" 读取失败，请重试`);
+        setMessageType('error');
       };
       reader.readAsDataURL(file);
     });
@@ -55,6 +67,7 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
 
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
+    setImageCount((prev) => Math.max(0, prev - 1));
   };
 
   /**
@@ -76,14 +89,21 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     const dirPath = `src/content/moments/${authorStr}/${timestamp}`;
     const contentFilePath = `${dirPath}/content.md`;
 
-    // 生成 front matter + 正文内容
+    // 生成 front matter + 正文内容 + 图片引用
     const isoDate = new Date().toISOString();
+    let imageTags = '';
+    for (const image of imgs) {
+      if (image.data.startsWith('data:')) {
+        imageTags += `<img src="${image.data}" alt="${image.name}" />\n`;
+      }
+    }
+
     const fullContent = `---
 author: ${authorStr}
 date: ${isoDate}
 ---
 
-${contentStr}`;
+${contentStr}${imageTags}`;
 
     const commitMessage = `发布动态: ${authorStr} - ${timestamp}`;
 
@@ -227,12 +247,16 @@ ${contentStr}`;
       setAuthor('');
       setContent('');
       setImages([]);
+      setImageCount(0);
 
       if (onPublishSuccess) {
         onPublishSuccess();
       }
 
-      setTimeout(() => setMessage(''), 3000);
+      // Only auto-dismiss errors; success messages persist until dismissed
+      if (messageType === 'error') {
+        setTimeout(() => setMessage(''), 3000);
+      }
     } catch (error) {
       setMessage(`发布失败: ${error instanceof Error ? error.message : '未知错误'}`);
       setMessageType('error');
@@ -289,13 +313,33 @@ ${contentStr}`;
             <button
               type="button"
               onClick={handleFileSelect}
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-muted/50"
+              disabled={isReadingImages || isSubmitting}
+              className={`inline-flex items-center gap-1 text-xs transition-colors px-2 py-1 rounded-md hover:bg-muted/50 ${
+                isReadingImages || isSubmitting
+                  ? 'text-muted-foreground/40 cursor-not-allowed'
+                  : 'text-muted-foreground/70 hover:text-primary'
+              }`}
+              title={isReadingImages ? '图片读取中...' : '添加图片'}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <polyline points="21 15 16 10 5 21"/>
-              </svg>
+              {isReadingImages ? (
+                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  {imageCount > 0 && (
+                    <span className="bg-primary/20 text-primary text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {imageCount}
+                    </span>
+                  )}
+                </>
+              )}
             </button>
             <input
               ref={fileInputRef}
@@ -341,13 +385,18 @@ ${contentStr}`;
       {/* Message */}
       {message && (
         <div className="px-4 pb-2">
-          <div className={`text-xs px-3 py-1.5 rounded-lg ${
-            messageType === 'success'
-              ? 'bg-emerald-500/10 text-emerald-600'
-              : 'bg-red-500/10 text-red-600'
-          }`}>
+          <button
+            type="button"
+            onClick={() => setMessage('')}
+            className={`text-xs px-3 py-1.5 rounded-lg w-full text-left cursor-pointer transition-colors ${
+              messageType === 'success'
+                ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25'
+                : 'bg-red-500/15 text-red-600 hover:bg-red-500/25'
+            }`}
+          >
             {message}
-          </div>
+            <span className="ml-auto inline-block opacity-60 hover:opacity-100">✕</span>
+          </button>
         </div>
       )}
 

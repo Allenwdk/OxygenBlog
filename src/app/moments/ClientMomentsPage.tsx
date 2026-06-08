@@ -18,6 +18,7 @@ interface MomentPost {
   date: string;
   author: string;
   slug: string;
+  images?: string[]; // base64 image URLs extracted from content
 }
 
 interface MomentDetail {
@@ -26,6 +27,7 @@ interface MomentDetail {
   date: string;
   author: string;
   content: string;
+  images?: string[];
 }
 
 interface ClientMomentsPageProps {
@@ -51,7 +53,8 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
         excerpt: post.excerpt,
         date: post.date,
         author: post.author,
-        content: post.content
+        content: post.content,
+        images: post.images
       });
     }
     window.history.pushState({ slug }, '', `?view=${encodeURIComponent(slug)}`);

@@ -50,6 +50,15 @@ export async function POST(request: NextRequest) {
 
     // 构建 front matter
     const now = new Date().toISOString();
+    let imageTags = '';
+    if (images && images.length > 0) {
+      for (const image of images) {
+        if (image.data.startsWith('data:')) {
+          imageTags += `<img src="${image.data}" alt="${image.name}" />\n`;
+        }
+      }
+    }
+
     const frontMatter = `---
 author: ${author}
 date: ${now}
@@ -59,9 +68,9 @@ tags: []
 
 `;
 
-    // 写入 content.md
+    // 写入 content.md（包含图片引用）
     const contentMdPath = path.join(fullDirPath, 'content.md');
-    await fs.writeFile(contentMdPath, frontMatter + content, 'utf-8');
+    await fs.writeFile(contentMdPath, frontMatter + content + imageTags, 'utf-8');
 
     // 保存图片（如果有）
     if (images && images.length > 0) {

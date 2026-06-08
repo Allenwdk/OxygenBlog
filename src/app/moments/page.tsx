@@ -15,6 +15,7 @@ interface MomentPost {
   date: string;
   author: string;
   slug: string;
+  images?: string[];
 }
 
 /**
@@ -25,6 +26,19 @@ interface MomentFrontMatter {
   excerpt?: string;
   date?: string;
   author?: string;
+}
+
+/**
+ * 从 content 中提取 base64 <img> src
+ */
+function extractImages(content: string): string[] {
+  const images: string[] = [];
+  const imgRegex = /<img[^>]+src="((?:data:image\/\w+;base64,[^"]+))"/g;
+  let match;
+  while ((match = imgRegex.exec(content)) !== null) {
+    images.push(match[1]);
+  }
+  return images;
 }
 
 /**
@@ -96,6 +110,8 @@ function getAllMoments(): MomentPost[] {
         const defaultTitle = slugParts[slugParts.length - 1] || '动态';
         const title = frontMatter.title || defaultTitle;
 
+        const images = extractImages(content);
+
         momentPosts.push({
           id: slug,
           title: title,
@@ -103,7 +119,8 @@ function getAllMoments(): MomentPost[] {
           content: content,
           date: formatBlogDate(frontMatter.date),
           author: frontMatter.author || 'Unknown',
-          slug: slug
+          slug: slug,
+          images: images.length > 0 ? images : undefined
         });
       } catch (error) {
         console.error(`Error reading moment file ${relativePath}:`, error);

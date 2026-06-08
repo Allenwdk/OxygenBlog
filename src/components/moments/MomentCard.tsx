@@ -17,7 +17,7 @@ interface MomentPost {
 }
 
 interface MomentCardProps {
-  post: MomentPost & { onClick?: () => void };
+  post: MomentPost & { onClick?: () => void; images?: string[] };
 }
 
 /**
@@ -67,9 +67,17 @@ export default function MomentCard({ post }: MomentCardProps) {
   const displayContent = showContentExpanded ? post.excerpt :
     isLongContent ? `${post.excerpt.slice(0, 200)}...` : post.excerpt;
 
-  // Check if content has images (data URLs starting with data:image)
-  const hasImages = post.excerpt.includes('data:image');
-  const imageCount = (post.excerpt.match(/data:image/g) || []).length;
+  // Determine images to render: prefer extracted images, fall back to regex from content
+  const images = post.images || (() => {
+    if (!post.excerpt) return [];
+    const results: string[] = [];
+    const imgRegex = /<img[^>]+src="((?:data:image\/\w+;base64,[^"]+))"/g;
+    let match;
+    while ((match = imgRegex.exec(post.excerpt)) !== null) {
+      results.push(match[1]);
+    }
+    return results;
+  })();
 
   return (
     <motion.div
@@ -140,18 +148,15 @@ export default function MomentCard({ post }: MomentCardProps) {
         </div>
 
         {/* Image gallery */}
-        {hasImages && imageCount <= 4 && (
-          <div className={`flex gap-2 mb-3 ${imageCount === 1 ? 'justify-center' : ''}`}>
-            {Array.from({ length: imageCount }).map((_, i) => (
-              <div
+        {images.length > 0 && (
+          <div className={`flex flex-wrap gap-2 mb-3 ${images.length === 1 ? 'justify-center' : ''}`}>
+            {images.slice(0, 4).map((src, i) => (
+              <img
                 key={i}
-                className="max-w-[200px] rounded-xl overflow-hidden bg-card border border-border/30 shadow-sm"
-              >
-                {/* Image would be extracted and displayed here */}
-                <div className="w-full h-24 bg-muted/50 flex items-center justify-center text-muted-foreground text-xs">
-                  图片 {i + 1}
-                </div>
-              </div>
+                src={src}
+                alt=""
+                className="max-w-[200px] w-full h-auto rounded-xl border border-border/30 shadow-sm object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              />
             ))}
           </div>
         )}
