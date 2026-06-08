@@ -268,6 +268,7 @@ ${contentStr}${imageTags}`;
       const errText = await commitResp.text();
       throw new Error(`创建 commit 失败: ${commitResp.status} - ${errText.substring(0, 500)}`);
     }
+    const commitData = await commitResp.json();
 
     // Step 7: 更新分支引用到新 commit
     const updateUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
@@ -278,7 +279,7 @@ ${contentStr}${imageTags}`;
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ sha: treeData.commit.sha })
+      body: JSON.stringify({ sha: commitData.sha })
     });
 
     if (!updateResp.ok) throw new Error('更新分支引用失败');
