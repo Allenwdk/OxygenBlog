@@ -93,7 +93,7 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     for (const image of imgs) {
       if (image.data.startsWith('data:')) {
         const imageName = image.name || 'image.png';
-        imageTags += `![${imageName}](${imageName})\n`;
+        imageTags += `![${imageName}](${image.data})\n`;
       }
     }
 
@@ -107,13 +107,6 @@ date: ${isoDate}
 
 ${contentStr}${imageTags}`;
     files.push({ path: `${dirPath}/content.md`, content: fullContent, encoding: 'utf-8' });
-
-    for (const image of imgs) {
-      const imageName = image.name || 'image.png';
-      const imagePath = `${dirPath}/${imageName}`;
-      const base64Data = image.data.replace(/^data:[^;]+;base64,/, '');
-      files.push({ path: imagePath, content: base64Data, encoding: 'base64' });
-    }
 
     const commitMessage = `发布动态: ${authorStr} - ${timestamp}`;
 
