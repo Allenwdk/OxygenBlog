@@ -20,7 +20,7 @@ const loadPlugins = async () => {
   
   return {
     remarkPlugins: [remarkGfm.default, remarkMath.default, remarkBreaks.default, remarkEmoji.default],
-    rehypePlugins: [rehypeKatex.default, rehypeRaw.default, rehypeSlug.default]
+    rehypePlugins: [[rehypeRaw.default, { depth: 1 }], rehypeKatex.default, rehypeSlug.default]
   };
 };
 
