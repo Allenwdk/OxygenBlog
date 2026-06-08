@@ -192,9 +192,10 @@ ${contentStr}${imageTags}`;
     for (const file of files) {
       if (!file.content) continue;
 
+      // GitHub git/blobs API: utf-8 直接传明文，base64 传预编码内容
       let contentEncoded: string;
       if (file.encoding === 'utf-8') {
-        contentEncoded = btoa(unescape(encodeURIComponent(file.content)));
+        contentEncoded = file.content; // GitHub 自己处理 UTF-8 → base64
       } else {
         contentEncoded = file.content; // already base64
       }
