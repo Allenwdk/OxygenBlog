@@ -156,7 +156,7 @@ ${contentStr}${imageTags}`;
         // Recurse into sub-trees if not requesting full recursion
         if (!recursive) {
           const promises = entries
-            .filter(e => e.type === 'tree')
+            .filter((e: { type: string; path: string }) => e.type === 'tree')
             .map(e => getTreeEntriesRecursive(e.path, false));
           return Promise.all(promises).then(results => {
             const children: any[] = [];
