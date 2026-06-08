@@ -87,14 +87,14 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
     const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
     const sharedDirPath = `public/shared/moments/${authorStr}/${timestamp}`;
 
-    // 生成 front matter + 正文内容 + 图片引用（相对路径，纯文件名）
+ // 生成 front matter + 正文内容 + 图片引用（相对路径指向 public/shared/moments/）
     const isoDate = new Date().toISOString();
     let imageTags = '';
     for (const image of imgs) {
       if (image.data.startsWith('data:')) {
         const imageName = image.name || 'image.png';
-        // 使用纯文件名（相对路径，指向同目录下的文件）
-        imageTags += `![${imageName}](${imageName})\n`;
+        // 相对路径指向同目录下 public/shared/moments/{author}/{timestamp}/图片
+        imageTags += `![${imageName}](shared/moments/${authorStr}/${timestamp}/${imageName})\n`;
       }
     }
 

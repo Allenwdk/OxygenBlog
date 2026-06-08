@@ -48,13 +48,12 @@ export async function POST(request: NextRequest) {
     // 确保所有目录层级都存在（包括作者目录和时间戳子目录）
     await fs.mkdir(fullDirPath, { recursive: true });
 
-    //  // 生成 front matter
+    //// 生成 front matter + 图片标签（相对路径指向 public/shared/moments/）
     const now = new Date().toISOString();
     let imageTags = '';
     if (images && images.length > 0) {
       for (const image of images) {
-        // 使用纯文件名（相对路径，指向同目录下的文件）
-        imageTags += `<img src="${image.name}" alt="${image.name}" />\n`;
+        imageTags += `<img src="shared/moments/${author}/${timestamp}/${image.name}" alt="${image.name}" />\n`;
       }
     }
 

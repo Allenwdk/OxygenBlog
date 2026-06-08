@@ -145,13 +145,13 @@ export async function POST(request: NextRequest) {
     const sharedDirPath = `public/shared/moments/${author}/${timestamp}`;
     const contentFilePath = `${sharedDirPath}/content.md`;
 
-    // 生成 front matter + 图片标签（相对路径，纯文件名）
+   // 生成 front matter + 图片标签（相对路径指向 public/shared/moments/）
     const frontMatter = generateFrontMatter(author);
     let imageTags = '';
     if (images && images.length > 0) {
       for (const image of images) {
         const imageName = image.name || 'image.png';
-        imageTags += `<img src="${imageName}" alt="${imageName}" />\n`;
+        imageTags += `<img src="shared/moments/${author}/${timestamp}/${imageName}" alt="${imageName}" />\n`;
       }
     }
 
