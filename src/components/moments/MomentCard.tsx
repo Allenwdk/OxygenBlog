@@ -71,10 +71,10 @@ export default function MomentCard({ post }: MomentCardProps) {
   const images = post.images || (() => {
     if (!post.excerpt) return [];
     const results: string[] = [];
-    const imgRegex = /<img[^>]+src="((?:data:image\/\w+;base64,[^"]+))"/g;
+    const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let match;
     while ((match = imgRegex.exec(post.excerpt)) !== null) {
-      results.push(match[1]);
+      results.push(match[2]); // src
     }
     return results;
   })();

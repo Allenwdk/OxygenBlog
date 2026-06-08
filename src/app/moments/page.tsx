@@ -29,14 +29,15 @@ interface MomentFrontMatter {
 }
 
 /**
- * 从 content 中提取 base64 <img> src
+ * 从 content 中提取 markdown 图片 src
  */
 function extractImages(content: string): string[] {
   const images: string[] = [];
-  const imgRegex = /<img[^>]+src="((?:data:image\/\w+;base64,[^"]+))"/g;
+  const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
-    images.push(match[1]);
+    // match[2] is the src
+    images.push(match[2]);
   }
   return images;
 }
