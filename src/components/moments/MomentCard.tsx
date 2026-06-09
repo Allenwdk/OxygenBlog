@@ -68,17 +68,8 @@ export default function MomentCard({ post }: MomentCardProps) {
   const displayContent = showContentExpanded ? post.excerpt :
     isLongContent ? `${post.excerpt.slice(0, 200)}...` : post.excerpt;
 
-  // Determine images to render: prefer extracted images, fall back to regex from content
-  const images = post.images || (() => {
-    if (!post.excerpt) return [];
-    const results: string[] = [];
-    const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
-    let match;
-    while ((match = imgRegex.exec(post.excerpt)) !== null) {
-      results.push(processImagePath(match[2])); // src
-    }
-    return results;
-  })();
+// Images from post.images[] (populated by scanImagesInDirectory)
+  const images = post.images || [];
 
   return (
     <motion.div

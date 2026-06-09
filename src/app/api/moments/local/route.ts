@@ -45,17 +45,11 @@ export async function POST(request: NextRequest) {
     const authorDir = path.join(baseDir, author);
     const fullDirPath = path.join(authorDir, timestamp);
 
-    // 确保所有目录层级都存在（包括作者目录和时间戳子目录）
+  // 确保所有目录层级都存在（包括作者目录和时间戳子目录）
     await fs.mkdir(fullDirPath, { recursive: true });
 
-    //// 生成 front matter + 图片标签（相对路径指向 public/shared/moments/）
+    // 生成 front matter（纯文本，不包含图片标记）
     const now = new Date().toISOString();
-    let imageTags = '';
-    if (images && images.length > 0) {
-      for (const image of images) {
-        imageTags += `<img src="shared/moments/${author}/${timestamp}/${image.name}" alt="${image.name}" />\n`;
-      }
-    }
 
     const frontMatter = `---
 author: ${author}
@@ -66,9 +60,9 @@ tags: []
 
 `;
 
-    // 写入 content.md（包含图片引用）
+    // 写入 content.md（纯文本内容）
     const contentMdPath = path.join(fullDirPath, 'content.md');
-    await fs.writeFile(contentMdPath, frontMatter + content + imageTags, 'utf-8');
+    await fs.writeFile(contentMdPath, frontMatter + content, 'utf-8');
 
     // 保存图片（如果有）
     if (images && images.length > 0) {

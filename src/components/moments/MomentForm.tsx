@@ -82,21 +82,13 @@ export default function MomentForm({ onPublishSuccess }: MomentFormProps) {
       throw new Error('GitHub 配置不完整，请检查环境变量');
     }
 
-    // 生成时间戳和目录路径（图片和 content.md 存到同目录下 public/shared/moments/）
+  // 生成时间戳和目录路径（图片和 content.md 存到同目录下 public/shared/moments/）
     const now = new Date();
     const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
     const sharedDirPath = `public/shared/moments/${authorStr}/${timestamp}`;
 
- // 生成 front matter + 正文内容 + 图片引用（相对路径指向 public/shared/moments/）
+    // 生成 front matter + 正文内容（纯文本，不包含任何图片标记）
     const isoDate = new Date().toISOString();
-    let imageTags = '';
-    for (const image of imgs) {
-      if (image.data.startsWith('data:')) {
-        const imageName = image.name || 'image.png';
-        // 相对路径指向同目录下 public/shared/moments/{author}/{timestamp}/图片
-        imageTags += `![${imageName}](shared/moments/${authorStr}/${timestamp}/${imageName})\n`;
-      }
-    }
 
     // 构建所有文件: content.md（存到 public/shared/moments/，这样 Next.js 导出可访问）+ 图片文件
     const files: Array<{ path: string; content: string; encoding: 'utf-8' | 'base64' }> = [];
@@ -106,7 +98,7 @@ author: ${authorStr}
 date: ${isoDate}
 ---
 
-${contentStr}${imageTags}`;
+${contentStr}`;
     files.push({ path: `${sharedDirPath}/content.md`, content: fullContent, encoding: 'utf-8' });
 
     // 将图片以 base64 编码写入仓库（存到 public/shared/moments/ 下，静态导出可访问）

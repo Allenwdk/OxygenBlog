@@ -29,49 +29,34 @@ interface MomentFrontMatter {
   author?: string;
 }
 
-function processContent(content: string): string {
-  // Convert markdown image ![alt](src) to <img> tag for reliable rendering via rehype-raw
-  content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, _alt: string | undefined, src: string | undefined) => {
-    if (src === undefined || _alt === undefined) return _match;
-    return `<img src="${processImagePath(src)}" alt="${_alt}" />`;
-  });
-  // Handle existing <img> tags that need basePath processing
-  content = content.replace(/(<img\s+[^>]*src=["'])([^"']+)(['"])/gi, (_match, prefix: string, imgSrc: string, suffix: string) => {
-    return `${prefix}${processImagePath(imgSrc)}${suffix}`;
-  });
-  return content;
-}
-
-/**
- * 从 content 中提取 markdown 图片 src，并通过 processImagePath 添加 basePath
- */
-function extractImages(content: string): string[] {
+// 扫描同目录下所有图片文件，返回经过 basePath 处理的完整 URL
+function scanImagesInDirectory(contentDir: string): string[] {
+  const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
   const images: string[] = [];
-  const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
-  let match;
-  while ((match = imgRegex.exec(content)) !== null) {
-    images.push(processImagePath(match[2]));
+
+  try {
+    const items = fs.readdirSync(contentDir);
+    for (const item of items) {
+      const stat = fs.statSync(path.join(contentDir, item));
+      if (!stat.isDirectory()) {
+        // Check if file is an image
+        const ext = path.extname(item).toLowerCase();
+        if (imageExtensions.includes(ext)) {
+          // Relative to public/shared/moments/ -> then processImagePath adds basePath
+          const relativePath = path.relative(contentDir, path.join(contentDir, item)).replace(/\\/g, '/');
+          images.push(processImagePath(relativePath));
+        }
+      }
+    }
+  } catch {
+    // Directory might not exist (e.g. no images in that dir)
   }
+
   return images;
 }
 
-function extractImgTags(content: string): string[] {
-  const images: string[] = [];
-  const imgTagRegex = /<img\s+[^>]*src=["']([^"']+)["'][^>]*>/gi;
-  let match;
-  while ((match = imgTagRegex.exec(content)) !== null) {
-    images.push(processImagePath(match[1]));
-  }
-  return images;
- return images;
-}
-
 /**
- * 递归扫描目录中的所有 .md 文件
- * 
- * @param dir - 要扫描的目录路径
- * @param baseDir - 基础目录路径，用于计算相对路径
- * @returns 包含所有 .md 文件信息的数组
+ * Recursive scan directory for all .md files
  */
 function scanMarkdownFiles(dir: string, baseDir: string): Array<{filePath: string, relativePath: string, slug: string}> {
   const results: Array<{filePath: string, relativePath: string, slug: string}> = [];
@@ -121,13 +106,13 @@ function getAllMoments(): MomentPost[] {
     const markdownFiles = scanMarkdownFiles(contentDir, contentDir);
     const momentPosts: MomentPost[] = [];
     
-    markdownFiles.forEach(({ filePath, relativePath, slug }) => {
+   markdownFiles.forEach(({ filePath, relativePath, slug }) => {
       try {
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const { data } = matter(fileContent);
         const frontMatter = data as MomentFrontMatter;
 
- // 获取文章内容用于截取 excerpt
+        // 获取文章内容用于截取 excerpt
         const { content } = matter(fileContent);
 
         // 标题处理：优先使用元数据中的 title，否则使用 slug 最后一部分
@@ -135,16 +120,15 @@ function getAllMoments(): MomentPost[] {
         const defaultTitle = slugParts[slugParts.length - 1] || '动态';
         const title = frontMatter.title || defaultTitle;
 
-        // 提取 markdown 图片和 <img> 标签中的图片路径（已处理 basePath）
-        const mdImages = extractImages(content);
-        const imgTagImages = extractImgTags(content);
-        const images = [...mdImages, ...imgTagImages];
+        // 扫描同目录下所有图片文件并构建带 basePath 的 URL
+        const imagesDir = path.dirname(filePath);
+        const images = scanImagesInDirectory(imagesDir);
 
-       momentPosts.push({
+        momentPosts.push({
           id: slug,
           title: title,
           excerpt: frontMatter.excerpt || content.slice(0, 100),
-          content: processContent(content),
+          content: content, // 直接传原始 markdown，不处理任何图片逻辑
           date: formatBlogDate(frontMatter.date),
           author: frontMatter.author || 'Unknown',
           slug: slug,

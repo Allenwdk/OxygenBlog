@@ -187,9 +187,18 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
                 </div>
 
                 {/* Content - full rendering */}
-                <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+                <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed mb-4">
                   <LazyMarkdown content={detailData.content} />
                 </div>
+
+                {/* Images from post.images[] - tiled below text */}
+                {detailData.images && detailData.images.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {detailData.images.map((src, i) => (
+                      <img key={i} src={src} alt="" className="w-full h-auto rounded-xl border border-border/30 shadow-sm object-cover" />
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

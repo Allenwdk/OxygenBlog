@@ -140,24 +140,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-   // 生成时间戳和目录路径（图片和 content.md 存到同目录 public/shared/moments/）
+// 生成时间戳和目录路径（图片和 content.md 存到同目录 public/shared/moments/）
     const timestamp = generateTimestamp();
     const sharedDirPath = `public/shared/moments/${author}/${timestamp}`;
     const contentFilePath = `${sharedDirPath}/content.md`;
 
-   // 生成 front matter + 图片标签（相对路径指向 public/shared/moments/）
+    // 生成 front matter + 正文（纯文本，不包含任何图片标记）
     const frontMatter = generateFrontMatter(author);
-    let imageTags = '';
-    if (images && images.length > 0) {
-      for (const image of images) {
-        const imageName = image.name || 'image.png';
-        imageTags += `<img src="shared/moments/${author}/${timestamp}/${imageName}" alt="${imageName}" />\n`;
-      }
-    }
 
-    // 上传 content.md
+    // 上传 content.md（纯文本内容）
     const commitMessage = `发布动态: ${author} - ${timestamp}`;
-    await uploadFile(owner, repo, branch, token, contentFilePath, `${frontMatter}\n\n${content}${imageTags}`, commitMessage);
+    await uploadFile(owner, repo, branch, token, contentFilePath, `${frontMatter}\n\n${content}`, commitMessage);
 
     // 上传图片（存到同目录，静态导出可访问）
     if (images && images.length > 0) {
