@@ -36,20 +36,23 @@ function scanImagesInDirectory(contentDir: string): string[] {
 
   try {
     const items = fs.readdirSync(contentDir);
+    // base = process.cwd()/public (where public/shared/moments starts)
+    const publicBase = path.join(process.cwd(), 'public');
     for (const item of items) {
       const stat = fs.statSync(path.join(contentDir, item));
       if (!stat.isDirectory()) {
         // Check if file is an image
         const ext = path.extname(item).toLowerCase();
         if (imageExtensions.includes(ext)) {
-          // Relative to public/shared/moments/ -> then processImagePath adds basePath
-          const relativePath = path.relative(contentDir, path.join(contentDir, item)).replace(/\\/g, '/');
+          const fullPath = path.join(contentDir, item);
+          // Get relative path from public/ -> e.g., "shared/moments/author/timestamp/Screenshot.png"
+          const relativePath = path.relative(publicBase, fullPath).replace(/\\/g, '/');
           images.push(processImagePath(relativePath));
         }
       }
     }
   } catch {
-    // Directory might not exist (e.g. no images in that dir)
+    // Directory might not exist (e.g. no author dir yet)
   }
 
   return images;
