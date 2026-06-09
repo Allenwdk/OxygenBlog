@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { formatBlogDate } from '@/lib/utils';
 import { processImagePath } from '@/lib/process-image-path';
 import ClientMomentsPage from './ClientMomentsPage';
 
@@ -132,7 +131,7 @@ function getAllMoments(): MomentPost[] {
           title: title,
           excerpt: frontMatter.excerpt || content.slice(0, 100),
           content: content, // 直接传原始 markdown，不处理任何图片逻辑
-          date: formatBlogDate(frontMatter.date),
+          date: frontMatter.date || new Date().toISOString(),
           author: frontMatter.author || 'Unknown',
           slug: slug,
           images: images.length > 0 ? images : undefined
