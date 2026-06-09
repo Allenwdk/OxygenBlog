@@ -30,14 +30,14 @@ interface MomentFrontMatter {
 }
 
 function processContent(content: string): string {
-  // 处理 <img> 标签中的 src 属性
-  content = content.replace(/(<img\s+[^>]*src=["'])([^"']+)(['"])/gi, (_match, prefix: string, src: string, suffix: string) => {
-    return `${prefix}${processImagePath(src)}${suffix}`;
-  });
-  // 处理 markdown 图片 ![alt](src)
+  // Convert markdown image ![alt](src) to <img> tag for reliable rendering via rehype-raw
   content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, _alt: string | undefined, src: string | undefined) => {
-    if (src === undefined || !_alt) return _match;
-    return `![${_alt}](${processImagePath(src)})`;
+    if (src === undefined || _alt === undefined) return _match;
+    return `<img src="${processImagePath(src)}" alt="${_alt}" />`;
+  });
+  // Handle existing <img> tags that need basePath processing
+  content = content.replace(/(<img\s+[^>]*src=["'])([^"']+)(['"])/gi, (_match, prefix: string, imgSrc: string, suffix: string) => {
+    return `${prefix}${processImagePath(imgSrc)}${suffix}`;
   });
   return content;
 }
