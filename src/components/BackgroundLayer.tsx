@@ -18,35 +18,53 @@ import { useEffect, useState, useRef } from 'react';
 export default function BackgroundLayer() {
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: -200, y: -200 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const lightRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number>(0);
+  const mousePosRef = useRef({ x: -200, y: -200 });
 
   // 确保组件在客户端挂载后再渲染，避免主题不匹配
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 监听鼠标移动，更新光照位置
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   // 所有 hooks 必须在条件返回之前调用（遵守 Hooks 规则）
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   const fullImagePath = `${basePath}${backgroundImage}`;
   const isDark = resolvedTheme === 'dark';
+  const LIGHT_RADIUS = 200;
+
+  // 监听鼠标移动，更新光照位置（使用requestAnimationFrame优化）
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePosRef.current = { x: e.clientX, y: e.clientY };
+      
+      // 使用requestAnimationFrame避免过度渲染
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(() => {
+        if (lightRef.current) {
+          const { x, y } = mousePosRef.current;
+          lightRef.current.style.background = 
+            `radial-gradient(${LIGHT_RADIUS}px circle at ${x}px ${y}px, ${isDark ? 'oklch(0.627 0.400 188.7 / 0.12)' : 'oklch(0.327 0.400 188.7 / 0.15)'}, transparent ${LIGHT_RADIUS}px)`;
+        }
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isDark]);
 
   if (!enableBackground || !backgroundImage || !mounted) {
     return null;
   }
-
-  // 光照半径
-  const LIGHT_RADIUS = 200;
 
   return (
     <div
@@ -65,9 +83,10 @@ export default function BackgroundLayer() {
     >
       {/* 跟随鼠标的光照效果 */}
       <div
-        className="absolute inset-0 pointer-events-none transition-all duration-300 ease-out"
+        ref={lightRef}
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: `radial-gradient(${LIGHT_RADIUS}px circle at ${mousePos.x}px ${mousePos.y}px, ${isDark ? 'oklch(0.627 0.400 188.7 / 0.12)' : 'oklch(0.327 0.400 188.7 / 0.15)'}, transparent ${LIGHT_RADIUS}px)`,
+          background: `radial-gradient(${LIGHT_RADIUS}px circle at ${mousePosRef.current.x}px ${mousePosRef.current.y}px, ${isDark ? 'oklch(0.627 0.400 188.7 / 0.12)' : 'oklch(0.327 0.400 188.7 / 0.15)'}, transparent ${LIGHT_RADIUS}px)`,
         }}
       />
 
