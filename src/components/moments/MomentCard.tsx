@@ -19,6 +19,8 @@ interface MomentPost {
 
 interface MomentCardProps {
   post: MomentPost & { onClick?: () => void; images?: string[] };
+  onImageClick?: (index: number) => void;
+  slug: string;
 }
 
 /**
@@ -52,10 +54,11 @@ function formatRelativeTime(dateStr: string): string {
 /**
  * 动态卡片组件 - 社交媒体时间线风格
  */
-export default function MomentCard({ post }: MomentCardProps) {
+export default function MomentCard({ post, onImageClick, slug }: MomentCardProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showContentExpanded, setShowContentExpanded] = useState(false);
+  const [showCopiedToast, setShowCopiedToast] = useState(false);
 
   const handleLike = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -63,10 +66,25 @@ export default function MomentCard({ post }: MomentCardProps) {
     setLikeCount(prev => liked ? Math.max(0, prev - 1) : prev + 1);
   }, [liked]);
 
-  // Truncate long content for feed view
-  const isLongContent = post.excerpt.length > 200;
-  const displayContent = showContentExpanded ? post.excerpt :
-    isLongContent ? `${post.excerpt.slice(0, 200)}...` : post.excerpt;
+  const handleShare = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const url = `${window.location.origin}/moments?view=${encodeURIComponent(slug)}`;
+      await navigator.clipboard.writeText(url);
+      setShowCopiedToast(true);
+      setTimeout(() => setShowCopiedToast(false), 2000);
+    } catch {
+      // Fallback: do nothing
+    }
+  }, [slug]);
+
+  const handleComment = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    post.onClick?.();
+  }, [post]);
+
+  const LINE_CLAMP = 4;
+  const isLongContent = post.excerpt.split('\n').length > LINE_CLAMP || post.excerpt.length > 200;
 
 // Images from post.images[] (populated by scanImagesInDirectory)
   const images = post.images || [];
@@ -91,12 +109,12 @@ export default function MomentCard({ post }: MomentCardProps) {
         <div className="w-3 h-3 rounded-full bg-primary/70 ring-4 ring-background/90" />
       </div>
 
-      {/* Card content - no border, no shadow, just floating content */}
-      <div className="cursor-pointer select-none transition-all duration-200 hover:bg-card/50 rounded-xl px-4 py-3 -mx-4">
+      {/* Card content - glass morphism style */}
+      <div className="glass-card shadow-glass-md rounded-2xl p-4 cursor-pointer select-none transition-all duration-300 hover:shadow-glass-lg hover:-translate-y-1">
         {/* Author line */}
         <div className="flex items-center gap-3 mb-3">
           {/* Avatar */}
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center text-primary-foreground font-semibold text-sm shadow-sm ring-2 ring-background/50 flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-md ring-2 ring-background/80 flex-shrink-0">
             {post.author.charAt(0).toUpperCase()}
           </div>
 
@@ -123,63 +141,82 @@ export default function MomentCard({ post }: MomentCardProps) {
         </div>
 
         {/* Content */}
-        <div className="text-foreground text-[15px] leading-relaxed mb-3">
-          {isLongContent && !showContentExpanded ? (
-            <>
-              <p className="whitespace-pre-wrap">{displayContent}</p>
+        <div className="text-foreground text-[15px] leading-relaxed mb-3 relative">
+          <div className={`whitespace-pre-wrap ${!showContentExpanded ? 'line-clamp-4' : ''}`}>
+            {post.excerpt}
+          </div>
+          {!showContentExpanded && isLongContent && (
+            <div className="relative">
+              <div className="absolute inset-x-0 -bottom-1 h-8 bg-gradient-to-t from-card/90 to-transparent pointer-events-none" />
               <button
-                onClick={() => setShowContentExpanded(true)}
-                className="text-primary/80 hover:text-primary text-sm font-medium mt-1 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setShowContentExpanded(true); }}
+                className="relative z-10 text-primary/80 hover:text-primary text-sm font-medium mt-1 transition-colors"
               >
-                展开
+                展开全文
               </button>
-            </>
-          ) : (
-            <p className="whitespace-pre-wrap">{displayContent}</p>
+            </div>
+          )}
+          {showContentExpanded && isLongContent && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowContentExpanded(false); }}
+              className="text-primary/80 hover:text-primary text-sm font-medium mt-1 transition-colors"
+            >
+              收起
+            </button>
           )}
         </div>
 
         {/* Image gallery */}
         {images.length > 0 && (
-          <div className={`flex flex-wrap gap-2 mb-3 ${images.length === 1 ? 'justify-center' : ''}`}>
-            {images.slice(0, 4).map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt=""
-                className="max-w-[200px] w-full h-auto rounded-xl border border-border/30 shadow-sm object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              />
+          <div className={`grid gap-2 mb-3 ${
+            images.length === 1 ? 'grid-cols-1' : 
+            images.length === 2 ? 'grid-cols-2' : 
+            'grid-cols-3'
+          }`}>
+            {images.slice(0, 9).map((src, i) => (
+              <div key={i} className={`relative overflow-hidden rounded-xl ${
+                images.length === 1 ? 'aspect-video' : 'aspect-square'
+              }`}>
+                <img
+                  src={src}
+                  alt=""
+                  className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
+                  onClick={(e) => { e.stopPropagation(); onImageClick?.(i); }}
+                />
+              </div>
             ))}
           </div>
         )}
 
         {/* Action bar */}
-        <div className="flex items-center gap-5 pt-1">
+        <div className="flex items-center gap-1 pt-3 mt-1 border-t border-border/30">
           {/* Like button */}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.85 }}
             onClick={handleLike}
-            className={`flex items-center gap-1.5 text-sm transition-colors group/like ${
-              liked ? 'text-red-500' : 'text-muted-foreground hover:text-foreground'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors ${
+              liked ? 'text-red-500 hover:bg-red-500/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
             }`}
           >
-            <svg
+            <motion.svg
+              animate={liked ? { scale: [1, 1.3, 1] } : {}}
+              transition={{ duration: 0.3 }}
               width="16"
               height="16"
               viewBox="0 0 24 24"
               fill={liked ? 'currentColor' : 'none'}
               stroke="currentColor"
               strokeWidth="2"
-              className="transition-transform duration-200 group-hover/like:scale-110"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
+            </motion.svg>
             <span>{likeCount > 0 ? likeCount : '赞'}</span>
-          </button>
+          </motion.button>
 
           {/* Comment button */}
           <button
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            onClick={handleComment}
           >
             <svg
               width="16"
@@ -188,7 +225,6 @@ export default function MomentCard({ post }: MomentCardProps) {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
-              className="transition-transform duration-200 hover:scale-110"
             >
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
@@ -197,8 +233,8 @@ export default function MomentCard({ post }: MomentCardProps) {
 
           {/* Share button */}
           <button
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto"
-            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors ml-auto relative"
+            onClick={handleShare}
           >
             <svg
               width="16"
@@ -207,12 +243,21 @@ export default function MomentCard({ post }: MomentCardProps) {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
-              className="transition-transform duration-200 hover:scale-110"
             >
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
               <polyline points="16 6 12 2 8 6"/>
               <line x1="12" y1="2" x2="12" y2="15"/>
             </svg>
+            {showCopiedToast && (
+              <motion.span
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-foreground text-background px-2 py-1 rounded-md shadow-md"
+              >
+                已复制
+              </motion.span>
+            )}
           </button>
         </div>
       </div>

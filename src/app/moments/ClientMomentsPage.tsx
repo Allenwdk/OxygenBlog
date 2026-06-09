@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import MomentForm from '@/components/moments/MomentForm';
 import MomentCard from '@/components/moments/MomentCard';
+import ImageLightbox from '@/components/moments/ImageLightbox';
 import LazyMarkdown from '@/components/LazyMarkdown';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
 
@@ -18,7 +19,7 @@ interface MomentPost {
   date: string;
   author: string;
   slug: string;
-  images?: string[]; // base64 image URLs extracted from content
+  images?: string[];
 }
 
 interface MomentDetail {
@@ -35,14 +36,68 @@ interface ClientMomentsPageProps {
 }
 
 /**
+ * 将日期格式化为友好的分组标签
+ */
+function getDateGroupLabel(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diffDays = Math.floor((today.getTime() - targetDay.getTime()) / 86400000);
+
+    if (diffDays === 0) return '今天';
+    if (diffDays === 1) return '昨天';
+    if (diffDays === 2) return '前天';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    if (year === now.getFullYear()) {
+      return `${month}月${day}日`;
+    }
+    return `${year}年${month}月${day}日`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * 格式化完整日期时间
+ */
+function formatFullDate(dateStr: string): string {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
  * 客户端动态列表页面 - 社交媒体时间线风格
  */
 export default function ClientMomentsPage({ initialPosts }: ClientMomentsPageProps) {
   const [posts] = useState<MomentPost[]>(initialPosts);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [detailData, setDetailData] = useState<MomentDetail | null>(null);
   const { containerStyle } = useBackgroundStyle('moments');
+
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
 
   const openDetail = useCallback((slug: string) => {
     setSelectedSlug(slug);
@@ -67,24 +122,22 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
   }, []);
 
   const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      const res = await fetch(`/api/moments/revalidate`, { method: 'POST' });
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        window.location.reload();
-      }
-    } catch {
-      window.location.reload();
-    } finally {
-      setIsRefreshing(false);
-    }
+    window.location.reload();
   }, []);
 
   const handlePublishSuccess = useCallback(() => {
     handleRefresh();
   }, [handleRefresh]);
+
+  const openLightbox = useCallback((images: string[], index: number) => {
+    setLightboxImages(images);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false);
+  }, []);
 
   // Handle browser back/forward when closing detail view
   useEffect(() => {
@@ -99,27 +152,32 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
   }, []);
 
   // Sort posts by date descending (newest first)
-  const sortedPosts = [...posts].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
+  const sortedPosts = useMemo(() =>
+    [...posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [posts]
+  );
 
-  // Format date for detail view
-  const formattedDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return dateStr;
+  // Group posts by date
+  const groupedPosts = useMemo(() => {
+    const groups: { label: string; posts: MomentPost[] }[] = [];
+    let currentLabel = '';
 
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}年${month}月${day}日 ${hours}:${minutes}`;
-    } catch {
-      return dateStr;
+    for (const post of sortedPosts) {
+      const label = getDateGroupLabel(post.date);
+      if (label !== currentLabel) {
+        currentLabel = label;
+        groups.push({ label, posts: [post] });
+      } else {
+        groups[groups.length - 1].posts.push(post);
+      }
     }
-  };
+
+    return groups;
+  }, [sortedPosts]);
+
+  // Stats
+  const totalCount = sortedPosts.length;
+  const latestDate = sortedPosts.length > 0 ? formatFullDate(sortedPosts[0].date) : '';
 
   return (
     <div className={containerStyle.className} style={containerStyle.style}>
@@ -133,9 +191,19 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">
               动态
             </h1>
+            <p className="text-sm text-muted-foreground/70">
+              {totalCount > 0 ? (
+                <>
+                  共 <span className="text-foreground/80 font-medium">{totalCount}</span> 条动态
+                  {latestDate && <span> · 最近更新于 {latestDate}</span>}
+                </>
+              ) : (
+                '记录生活中的点滴'
+              )}
+            </p>
           </motion.div>
         )}
 
@@ -151,7 +219,7 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
           </motion.div>
         )}
 
-        {/* Detail View - clean single post layout */}
+        {/* Detail View */}
         <AnimatePresence>
           {selectedSlug && detailData && (
             <motion.div
@@ -161,41 +229,58 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
               transition={{ duration: 0.25 }}
               className="mb-8"
             >
+              {/* Back button */}
               <button
                 onClick={closeDetail}
-                className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors glass-card shadow-glass-sm rounded-full px-4 py-2 hover:shadow-glass-md"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
                 返回动态
               </button>
 
-              {/* Detail card - minimal styling */}
-              <div className="px-4 py-5">
+              {/* Detail card - glass morphism */}
+              <div className="glass-card shadow-glass-md rounded-2xl p-6">
                 {/* Author header */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center text-primary-foreground font-semibold shadow-sm ring-2 ring-background/50">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground font-bold shadow-md ring-2 ring-background/80">
                     {detailData.author.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-medium text-foreground">{detailData.author}</div>
+                    <div className="font-semibold text-foreground">{detailData.author}</div>
                     <div className="text-xs text-muted-foreground/70">
-                      {formattedDate(detailData.date)}
+                      {formatFullDate(detailData.date)}
                     </div>
                   </div>
                 </div>
 
                 {/* Content - full rendering */}
-                <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed mb-4">
+                <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed mb-5">
                   <LazyMarkdown content={detailData.content} />
                 </div>
 
-                {/* Images from post.images[] - tiled below text */}
+                {/* Images - responsive grid */}
                 {detailData.images && detailData.images.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className={`grid gap-3 ${
+                    detailData.images.length === 1 ? 'grid-cols-1' :
+                    detailData.images.length === 2 ? 'grid-cols-2' :
+                    'grid-cols-2 sm:grid-cols-3'
+                  }`}>
                     {detailData.images.map((src, i) => (
-                      <img key={i} src={src} alt="" className="w-full h-auto rounded-xl border border-border/30 shadow-sm object-cover" />
+                      <div
+                        key={i}
+                        className={`relative overflow-hidden rounded-xl cursor-pointer group ${
+                          detailData.images!.length === 1 ? 'aspect-video' : 'aspect-square'
+                        }`}
+                        onClick={() => openLightbox(detailData.images!, i)}
+                      >
+                        <img
+                          src={src}
+                          alt=""
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
                     ))}
                   </div>
                 )}
@@ -204,19 +289,7 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
           )}
         </AnimatePresence>
 
-        {/* Refresh indicator */}
-        {isRefreshing && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center mb-6"
-          >
-            <span className="text-sm text-muted-foreground">刷新中...</span>
-          </motion.div>
-        )}
-
-        {/* Timeline feed */}
+        {/* Timeline feed with date grouping */}
         {!selectedSlug && (
           <>
             {sortedPosts.length > 0 ? (
@@ -225,26 +298,53 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {sortedPosts.map((post) => (
-                  <MomentCard
-                    key={post.id}
-                    post={{ ...post, onClick: () => openDetail(post.slug) }}
-                  />
+                {groupedPosts.map((group) => (
+                  <div key={group.label}>
+                    {/* Date group separator */}
+                    <div className="flex items-center gap-3 mb-4 mt-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        {group.label}
+                      </span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-border/50 to-transparent" />
+                    </div>
+
+                    {/* Posts in this group */}
+                    {group.posts.map((post) => (
+                      <MomentCard
+                        key={post.id}
+                        slug={post.slug}
+                        post={{ ...post, onClick: () => openDetail(post.slug) }}
+                        onImageClick={(index) => openLightbox(post.images || [], index)}
+                      />
+                    ))}
+                  </div>
                 ))}
               </motion.div>
             ) : (
+              /* Empty state */
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="flex flex-col items-center justify-center py-24 px-4"
               >
-                <div className="text-5xl mb-4 opacity-60">✨</div>
-                <h2 className="text-lg font-medium text-foreground/80 mb-2">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/60">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    <line x1="9" y1="10" x2="15" y2="10"/>
+                  </svg>
+                </div>
+                <h2 className="text-lg font-semibold text-foreground/80 mb-2">
                   还没有动态
                 </h2>
-                <p className="text-sm text-muted-foreground text-center max-w-xs">
-                  开启你的第一条动态，记录生活中的精彩瞬间吧
+                <p className="text-sm text-muted-foreground text-center max-w-xs leading-relaxed">
+                  点击上方「分享此刻的想法」，记录生活中的精彩瞬间吧
                 </p>
               </motion.div>
             )}
@@ -261,10 +361,19 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
           >
             <div className="w-px h-8 bg-gradient-to-b from-border/50 to-transparent mx-auto mb-4" />
             <p className="text-xs text-muted-foreground/50">
-              共 {sortedPosts.length} 条动态
+              已经到底啦
             </p>
           </motion.div>
         )}
+
+        {/* Image Lightbox */}
+        <ImageLightbox
+          images={lightboxImages}
+          currentIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={closeLightbox}
+          onNavigate={setLightboxIndex}
+        />
       </div>
     </div>
   );
