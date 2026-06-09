@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { processImagePath } from '@/lib/process-image-path';
 
 /**
@@ -24,7 +24,23 @@ interface MomentCardProps {
 }
 
 /**
- * 将时间戳转换为相对时间
+ * 返回固定的日期格式（用于服务端渲染，避免 hydration 不匹配）
+ */
+function formatStaticDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
+ * 将时间戳转换为相对时间（仅客户端使用）
  */
 function formatRelativeTime(dateStr: string): string {
   try {
@@ -42,10 +58,7 @@ function formatRelativeTime(dateStr: string): string {
     if (diffHours < 24) return `${diffHours}小时前`;
     if (diffDays < 7) return `${diffDays}天前`;
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatStaticDate(dateStr);
   } catch {
     return dateStr;
   }
@@ -59,6 +72,11 @@ export default function MomentCard({ post, onImageClick, slug }: MomentCardProps
   const [likeCount, setLikeCount] = useState(0);
   const [showContentExpanded, setShowContentExpanded] = useState(false);
   const [showCopiedToast, setShowCopiedToast] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLike = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -122,7 +140,7 @@ export default function MomentCard({ post, onImageClick, slug }: MomentCardProps
             <div className="flex items-baseline gap-2">
               <span className="font-medium text-foreground text-sm truncate">{post.author}</span>
               <span className="text-xs text-muted-foreground/70 flex-shrink-0">
-                · {formatRelativeTime(post.date)}
+                · {mounted ? formatRelativeTime(post.date) : formatStaticDate(post.date)}
               </span>
             </div>
           </div>

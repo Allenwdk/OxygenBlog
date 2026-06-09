@@ -36,7 +36,23 @@ interface ClientMomentsPageProps {
 }
 
 /**
- * 将日期格式化为友好的分组标签
+ * 返回固定的日期标签（用于服务端渲染，避免 hydration 不匹配）
+ */
+function getStaticDateLabel(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}年${month}月${day}日`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * 将日期格式化为友好的分组标签（仅客户端使用）
  */
 function getDateGroupLabel(dateStr: string): string {
   try {
@@ -93,6 +109,11 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [detailData, setDetailData] = useState<MomentDetail | null>(null);
   const { containerStyle } = useBackgroundStyle('moments');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -159,11 +180,12 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
 
   // Group posts by date
   const groupedPosts = useMemo(() => {
+    const getDateLabel = mounted ? getDateGroupLabel : getStaticDateLabel;
     const groups: { label: string; posts: MomentPost[] }[] = [];
     let currentLabel = '';
 
     for (const post of sortedPosts) {
-      const label = getDateGroupLabel(post.date);
+      const label = getDateLabel(post.date);
       if (label !== currentLabel) {
         currentLabel = label;
         groups.push({ label, posts: [post] });
@@ -173,7 +195,7 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
     }
 
     return groups;
-  }, [sortedPosts]);
+  }, [sortedPosts, mounted]);
 
   // Stats
   const totalCount = sortedPosts.length;
