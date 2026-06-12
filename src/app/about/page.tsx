@@ -13,6 +13,8 @@ import GitHubIcon from '@/assets/github.svg';
 import BiliBiliIcon from '@/assets/bilibili.png';
 import {title, BeforeAnimationText, AnimationText, name, slogan, images, aboutMeP1, aboutMeP2, aboutMeP3, mainContactMeDescription, subContactMeDescription, mail, github, bilibili, isBorder, isRainbowGradient}
 from '@/setting/AboutSetting';
+import { friendGroups, exchangeInfo } from '@/setting/FriendsSetting';
+import { ExternalLink, Globe, UserPlus } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useMemo, useEffect, useState } from 'react';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
@@ -159,6 +161,35 @@ export default function AboutPage() {
     backgroundSize: '200% 200%',
     animation: 'gradientShift 8s ease-in-out infinite',
   }), [primaryColor, secondaryColor, accentColor]);
+
+  // 友链区域样式
+  const friendsSectionStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${primaryColor}1a, ${primaryColor}0d)`,
+    borderColor: `${primaryColor}4d`
+  }), [primaryColor]);
+
+  // 友链分组标题渐变样式
+  const friendsTitleGradientStyle = useMemo(() => ({
+    backgroundImage: `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 50%, ${secondaryColor} 100%)`,
+    backgroundSize: '200% 200%',
+    animation: 'gradientShift 6s ease-in-out infinite',
+  }), [primaryColor, secondaryColor, accentColor]);
+
+  // 友链卡片图标背景样式
+  const friendIconStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${primaryColor}cc 0%, ${secondaryColor}ff 100%)`,
+  }), [primaryColor, secondaryColor]);
+
+  // 交换友链提示区域样式
+  const exchangeSectionStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${accentColor}1a, ${accentColor}0d)`,
+    borderColor: `${accentColor}4d`,
+  }), [accentColor]);
+
+  // 交换友链图标样式
+  const exchangeIconStyle = useMemo(() => ({
+    background: `linear-gradient(135deg, ${accentColor}cc 0%, ${primaryColor}ff 100%)`,
+  }), [accentColor, primaryColor]);
 
   // 联系图标背景样式 - 增强渐变效果
   const contactIconStyle = useMemo(() => ({
@@ -508,6 +539,125 @@ export default function AboutPage() {
                   🌟 期待与你的交流 · 让我们一起在技术的道路上前行
                 </p>
               </motion.div>
+            </motion.div>
+
+            {/* 友情链接区域 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="rounded-2xl p-8 border shadow-lg mt-8"
+              style={friendsSectionStyle}
+            >
+              <div className="text-center mb-8">
+                <h3
+                  className="text-2xl font-bold bg-clip-text text-transparent mb-3"
+                  style={friendsTitleGradientStyle}
+                >
+                  友情链接
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed max-w-2xl mx-auto">
+                  这里记录了一些有趣的站点，欢迎互访交流
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                {friendGroups.map((group, groupIndex) => (
+                  <motion.section
+                    key={group.groupName}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: groupIndex * 0.1 + 0.6 }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className="w-1.5 h-6 rounded-full"
+                        style={{
+                          background: `linear-gradient(to bottom, ${primaryColor}, ${accentColor})`,
+                        }}
+                      />
+                      <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+                        {group.groupName}
+                      </h4>
+                      <div className="flex-1 h-px bg-gray-200/50 dark:bg-gray-700/50" />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {group.links.map((link, linkIndex) => (
+                        <motion.a
+                          key={`${group.groupName}-${link.name}`}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4, delay: groupIndex * group.links.length + linkIndex * 0.08 + 0.7 }}
+                          whileHover={{ scale: 1.03, y: -4 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="group relative block rounded-xl p-5 shadow-md hover:shadow-glass-lg transition-all duration-300 overflow-hidden border bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+                          <div className="relative z-10 flex items-start gap-4">
+                            <div
+                              className="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center text-white shadow-md"
+                              style={friendIconStyle}
+                            >
+                              {link.avatar ? (
+                                <img
+                                  src={link.avatar}
+                                  alt={link.name}
+                                  className="w-full h-full rounded-lg object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <Globe className="w-6 h-6" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h5 className="text-base font-semibold text-gray-800 dark:text-white truncate">
+                                  {link.name}
+                                </h5>
+                                <ExternalLink className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0" />
+                              </div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">
+                                {link.description}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.a>
+                      ))}
+                    </div>
+                  </motion.section>
+                ))}
+              </div>
+
+              {exchangeInfo.enabled && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.9 }}
+                  className="mt-8 rounded-2xl p-6 border shadow-lg"
+                  style={exchangeSectionStyle}
+                >
+                  <div className="flex items-start gap-4">
+                    <div
+                      className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-md"
+                      style={exchangeIconStyle}
+                    >
+                      <UserPlus className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                        {exchangeInfo.title}
+                      </h4>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                        {exchangeInfo.content}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         </div>
