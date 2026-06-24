@@ -7,6 +7,7 @@ import MomentCard from '@/components/moments/MomentCard';
 import ImageLightbox from '@/components/moments/ImageLightbox';
 import LazyMarkdown from '@/components/LazyMarkdown';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
+import { Giscus } from '@/components/Giscus';
 
 /**
  * 动态文章接口
@@ -306,6 +307,19 @@ export default function ClientMomentsPage({ initialPosts }: ClientMomentsPagePro
                     ))}
                   </div>
                 )}
+
+                {/* 评论区 */}
+                <motion.div 
+                  className="mt-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                >
+                  <div className="border-t border-border/30 pt-6">
+                    <h3 className="text-xl font-semibold mb-4 text-foreground">评论区</h3>
+                    <Giscus key={selectedSlug} mapping="url" />
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
           )}

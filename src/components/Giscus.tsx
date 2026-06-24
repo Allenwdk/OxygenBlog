@@ -5,9 +5,11 @@ import { useTheme } from 'next-themes';
 
 interface GiscusProps {
   className?: string;
+  mapping?: 'pathname' | 'url' | 'title' | 'og:title' | 'specific' | 'number';
+  mappingSpecific?: string | number;
 }
 
-export function Giscus({ className = '' }: GiscusProps) {
+export function Giscus({ className = '', mapping = 'pathname', mappingSpecific }: GiscusProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const ref = useRef<HTMLDivElement>(null);
@@ -34,7 +36,10 @@ export function Giscus({ className = '' }: GiscusProps) {
     script.setAttribute('data-repo-id', 'R_kgDOP18nOw');
     script.setAttribute('data-category', 'Announcements');
     script.setAttribute('data-category-id', 'DIC_kwDOP18nO84Cv1_o');
-    script.setAttribute('data-mapping', 'pathname');
+    script.setAttribute('data-mapping', mapping);
+    if (mappingSpecific !== undefined) {
+      script.setAttribute('data-mapping-specific', String(mappingSpecific));
+    }
     script.setAttribute('data-strict', '0');
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
@@ -54,7 +59,7 @@ export function Giscus({ className = '' }: GiscusProps) {
         existingScript.remove();
       }
     };
-  }, [theme]);
+  }, [theme, mapping, mappingSpecific]);
 
   return (
     <div className={`giscus-container ${className}`}>
