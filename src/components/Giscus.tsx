@@ -7,9 +7,25 @@ interface GiscusProps {
   className?: string;
   mapping?: 'pathname' | 'url' | 'title' | 'og:title' | 'specific' | 'number';
   mappingSpecific?: string | number;
+  /**
+   * mapping 为 'specific' 时使用的讨论标题
+   * giscus 只认 data-term，不会读取 data-mapping-specific
+   */
+  term?: string;
+  /** 讨论分类名，默认 Announcements */
+  category?: string;
+  /** 讨论分类 ID，需与 category 配套 */
+  categoryId?: string;
 }
 
-export function Giscus({ className = '', mapping = 'pathname', mappingSpecific }: GiscusProps) {
+export function Giscus({
+  className = '',
+  mapping = 'pathname',
+  mappingSpecific,
+  term,
+  category = 'Announcements',
+  categoryId = 'DIC_kwDOP18nO84Cv1_o',
+}: GiscusProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const ref = useRef<HTMLDivElement>(null);
@@ -17,7 +33,7 @@ export function Giscus({ className = '', mapping = 'pathname', mappingSpecific }
 
   useEffect(() => {
     setTheme(isDark ? 'dark_dimmed' : 'light');
-    
+
     // 如果已经存在giscus脚本，先移除
     const existingScript = document.querySelector('script[src*="giscus"]');
     if (existingScript) {
@@ -34,9 +50,12 @@ export function Giscus({ className = '', mapping = 'pathname', mappingSpecific }
     script.src = 'https://giscus.app/client.js';
     script.setAttribute('data-repo', 'Allenwdk/OxygenBlog');
     script.setAttribute('data-repo-id', 'R_kgDOP18nOw');
-    script.setAttribute('data-category', 'Announcements');
-    script.setAttribute('data-category-id', 'DIC_kwDOP18nO84Cv1_o');
+    script.setAttribute('data-category', category);
+    script.setAttribute('data-category-id', categoryId);
     script.setAttribute('data-mapping', mapping);
+    if (term !== undefined) {
+      script.setAttribute('data-term', term);
+    }
     if (mappingSpecific !== undefined) {
       script.setAttribute('data-mapping-specific', String(mappingSpecific));
     }
@@ -59,7 +78,7 @@ export function Giscus({ className = '', mapping = 'pathname', mappingSpecific }
         existingScript.remove();
       }
     };
-  }, [theme, mapping, mappingSpecific]);
+  }, [theme, mapping, mappingSpecific, term, category, categoryId]);
 
   return (
     <div className={`giscus-container ${className}`}>
