@@ -21,7 +21,8 @@ export function useBackgroundStyle(pageType: PageType) {
   }, []);
 
   // 只有在客户端才启用背景图片功能
-  const isBackgroundEnabled = isClient && enableBackground && backgroundImage;
+  // 用 !! 归一成 boolean：backgroundImage 是字符串，直接参与 && 会让这个值变成 string | false
+  const isBackgroundEnabled = isClient && enableBackground && !!backgroundImage;
 
   const containerStyle = useMemo((): StyleConfig => {
     if (isBackgroundEnabled) {
