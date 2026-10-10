@@ -3,6 +3,54 @@ import path from 'path';
 import matter from 'gray-matter';
 import { formatBlogDate } from '@/lib/utils';
 import ClientArchivePage from '@/components/archive/ClientArchivePage';
+import type { Metadata } from 'next';
+
+/**
+ * 归档页面 SEO 元数据配置
+ *
+ * 功能说明：
+ * 1. 设置独立的页面标题和描述，利于搜索引擎收录
+ * 2. 配置 Open Graph 和 Twitter Card 用于社交媒体分享
+ * 3. 设置规范URL避免重复内容问题
+ */
+export const metadata: Metadata = {
+  /**
+   * 页面标题
+   * 使用模板格式：文章归档 | Allenwdk 的博客
+   */
+  title: '文章归档',
+
+  /**
+   * 页面描述
+   * 用于搜索引擎结果页展示
+   */
+  description: '浏览 Allenwdk 的所有博客文章，按发布时间线浏览。包含技术分享、生活随笔等多种分类。',
+
+  /**
+   * 关键词
+   * 帮助搜索引擎理解页面内容
+   */
+  keywords: ['文章归档', '博客归档', '时间线', '历史文章', '技术博客'],
+
+  /**
+   * Open Graph 配置
+   * 用于社交媒体分享
+   */
+  openGraph: {
+    title: '文章归档 | Allenwdk 的博客',
+    description: '浏览 Allenwdk 的所有博客文章，按发布时间线浏览。',
+    type: 'website',
+  },
+
+  /**
+   * Twitter Card 配置
+   */
+  twitter: {
+    card: 'summary',
+    title: '文章归档 | Allenwdk 的博客',
+    description: '浏览 Allenwdk 的所有博客文章，按发布时间线浏览。',
+  },
+};
 
 /**
  * 博客文章接口
@@ -16,8 +64,12 @@ interface BlogPost {
   tags: string[];
   slug: string;
   readTime: number;
-  year: number; // 添加年份字段用于归档
-  author: string; // 添加作者字段
+  /** 作者，多作者站点用于区分 */
+  author: string;
+  /** 封面图片路径，未配置时为空 */
+  coverImage?: string;
+  pinned?: boolean;
+  pinnedAt?: string;
 }
 
 /**
@@ -31,6 +83,11 @@ interface BlogFrontMatter {
   tags?: string[];
   readTime?: number;
   author?: string;
+  /** 封面图片路径 */
+  coverImage?: string;
+  pinned?: boolean;
+  pinnedAt?: string;
+  hidden?: boolean;
 }
 
 /**
@@ -74,16 +131,21 @@ function scanMarkdownFiles(dir: string, baseDir: string): Array<{filePath: strin
 }
 
 /**
- * 获取所有博客文章并按年份归档
- * 
- * @returns 按年份归档的博客文章
+ * 获取所有博客文章并整理为扁平列表
+ *
+ * 改造说明：
+ * 原实现按「年 -> 月 -> 日」三级嵌套归档，仅用于年份折叠视图。
+ * 新的归档页采用竖向时间轴平铺全部文章，因此直接返回按时间倒序的扁平数组，
+ * 同时透传封面图字段用于卡片展示。
+ *
+ * @returns 按发布日期倒序排列的博客文章列表
  */
-function getArchivedBlogs(): { [year: number]: BlogPost[] } {
+function getArchivedBlogs(): BlogPost[] {
   try {
     const contentDir = path.join(process.cwd(), 'src/content/blogs');
     
     if (!fs.existsSync(contentDir)) {
-      return {};
+      return [];
     }
     
     // 递归扫描所有 .md 文件
@@ -95,15 +157,15 @@ function getArchivedBlogs(): { [year: number]: BlogPost[] } {
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const { data } = matter(fileContent);
         const frontMatter = data as BlogFrontMatter;
-        
+
+        // 跳过隐藏的博客文章
+        if (frontMatter.hidden === true) {
+          return;
+        }
+
         // 标题处理：优先使用元数据中的 title，否则使用文件名
         const fileName = path.basename(filePath, '.md');
         const title = frontMatter.title || fileName;
-        
-        // 解析日期，获取年份
-        const dateStr = frontMatter.date || '';
-        const date = dateStr ? new Date(dateStr) : new Date();
-        const year = date.getFullYear();
         
         blogPosts.push({
           id: slug,
@@ -114,8 +176,10 @@ function getArchivedBlogs(): { [year: number]: BlogPost[] } {
           tags: frontMatter.tags || [],
           slug: slug,
           readTime: frontMatter.readTime || 5,
-          year: year,
-          author: frontMatter.author || 'Unknown'
+          author: frontMatter.author || 'Unknown',
+          coverImage: frontMatter.coverImage,
+          pinned: frontMatter.pinned || false,
+          pinnedAt: frontMatter.pinnedAt ? formatBlogDate(frontMatter.pinnedAt) : undefined
         });
       } catch (error) {
         console.error(`Error reading blog file ${relativePath}:`, error);
@@ -123,31 +187,22 @@ function getArchivedBlogs(): { [year: number]: BlogPost[] } {
     });
     
     // 按日期排序（最新的在前）
-    const sortedPosts = blogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    // 按年份归档
-    const archivedPosts: { [year: number]: BlogPost[] } = {};
-    
-    sortedPosts.forEach(post => {
-      if (!archivedPosts[post.year]) {
-        archivedPosts[post.year] = [];
-      }
-      archivedPosts[post.year].push(post);
-    });
-    
-    return archivedPosts;
+    // 排序列意说明：使用 formatBlogDate 归一化后的 YYYY-MM-DD 字符串排序。
+    // 该格式为定长字符串，字典序与时间序一致，且避免了直接 new Date() 解析
+    // 非标准日期时的浏览器差异；同一天的多次发布保持扫描顺序的稳定性。
+    return blogPosts.sort((a, b) => b.date.localeCompare(a.date));
   } catch (error) {
     console.error('Error getting archived blogs:', error);
-    return {};
+    return [];
   }
 }
 
 /**
  * 归档页面组件
- * 获取按年份归档的博客文章数据
+ * 获取全部博客文章，交给客户端组件渲染为竖向时间轴
  */
 export default async function ArchivePage() {
-  // 获取归档博客数据
+  // 获取归档博客数据（已按发布日期倒序）
   const archivedPosts = getArchivedBlogs();
   
   return <ClientArchivePage archivedPosts={archivedPosts} />;
