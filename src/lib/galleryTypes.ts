@@ -88,18 +88,6 @@ function toSlug(name: string): string {
     .replace(/[^a-z0-9一-龥_-]/g, '');
 }
 
-/**
- * 获取分类的显示顺序
- *
- * 本站画廊直接按 public/gallery 的目录结构推导分类，没有额外的映射表，
- * 因此顺序即分类名的字典序。
- */
-export function getCategorySortOrder(
-  _mainCategory: string,
-  _subCategory?: string
-): number {
-  return 99;
-}
 
 /**
  * 构建树形分类结构

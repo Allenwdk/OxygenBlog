@@ -27,7 +27,6 @@ export {
   buildCategoryTree,
   getImageCategories,
   filterImagesByCategory,
-  getCategorySortOrder,
 } from '@/lib/galleryTypes';
 
 /** 允许的图片扩展名（不含 svg：画廊只收录位图） */
