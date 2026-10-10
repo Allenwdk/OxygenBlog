@@ -30,7 +30,10 @@ export default function Navigation() {
     { href: '/blogs', label: '博客' },
     { href: '/publish', label: '发布' },
     { href: '/archive', label: '归档' },
+    { href: '/gallery', label: '画廊' },
     { href: '/moments', label: '动态' },
+    { href: '/guestbook', label: '留言板' },
+    { href: '/changelogs', label: '日志' },
     { href: '/about', label: '关于' },
   ];
   
