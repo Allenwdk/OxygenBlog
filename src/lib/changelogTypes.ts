@@ -1,0 +1,322 @@
+/**
+ * 开发日志类型定义和纯函数
+ * 此文件不包含任何 Node.js 模块依赖，可安全在客户端使用
+ */
+
+// 重新导出 front matter 解析函数
+export { parseFrontMatter } from '@/lib/frontMatterUtils';
+
+/**
+ * 开发日志类型定义
+ * - feature: 新功能
+ * - optimize: 优化
+ * - fix: 修复
+ * - docs: 文档
+ * - style: 样式
+ * - refactor: 重构
+ */
+export type ChangelogType = 'feature' | 'optimize' | 'fix' | 'docs' | 'style' | 'refactor';
+
+/**
+ * 成就类型定义
+ * - tired: 略感疲惫 - 关联提交数量 >= 10 且 < 20
+ * - exhausted: 肝爆了 - 关联提交数量 >= 20
+ * - smallButComplete: 麻雀虽小五脏俱全 - 关联提交 = 1 且 日志行数 > 55
+ * - lively: 人声鼎沸 - 预留成就类型
+ */
+export type ChangelogAchievement = 'tired' | 'exhausted' | 'smallButComplete' | 'lively';
+
+/**
+ * 自定义荣誉接口
+ */
+export interface CustomHonor {
+  name: string;      // 荣誉名称
+  color: string;     // 荣誉颜色（CSS颜色值或渐变色）
+}
+
+/**
+ * 开发日志接口定义
+ */
+export interface Changelog {
+  id: string;                         // 文件名作为ID
+  date: string;                       // 日期 YYYY-MM-DD
+  title: string;                      // 日志标题
+  type: ChangelogType;                // 日志类型
+  commits: string[];                  // 关联的Git提交
+  content: string;                    // 日志正文内容
+  filePath: string;                   // 文件路径
+  achievements: ChangelogAchievement[]; // 获得的自动成就标签
+  honors?: CustomHonor[];             // 自定义荣誉标签
+}
+
+/**
+ * 获取开发日志类型对应的颜色值（十六进制）
+ */
+export function getChangelogTypeColor(type: ChangelogType): string {
+  const colorMap: Record<ChangelogType, string> = {
+    feature: '#66ccff',   // 新功能
+    optimize: '#9966ff',  // 优化
+    fix: '#ff66cc',       // 修复
+    docs: '#ff9966',      // 文档
+    style: '#ccff66',     // 样式
+    refactor: '#66ff99',  // 重构
+  };
+
+  return colorMap[type] || colorMap.docs;
+}
+
+/**
+ * 获取开发日志类型的中文标签
+ */
+export function getChangelogTypeLabel(type: ChangelogType): string {
+  const labelMap: Record<ChangelogType, string> = {
+    feature: '新功能',
+    optimize: '优化',
+    fix: '修复',
+    docs: '文档',
+    style: '样式',
+    refactor: '重构',
+  };
+
+  return labelMap[type] || type;
+}
+
+/**
+ * 按年月分组统计日志数量
+ * @returns 按年月分组的统计数组，按时间升序排序
+ */
+export function getMonthStats(changelogs: Changelog[]): { label: string; count: number }[] {
+  const stats: Record<string, number> = {};
+
+  changelogs.forEach(changelog => {
+    const date = new Date(changelog.date);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const label = `${year}年${month}月`;
+    stats[label] = (stats[label] || 0) + 1;
+  });
+
+  return Object.entries(stats)
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => {
+      const yearMatchA = a.label.match(/(\d{4})年/);
+      const monthMatchA = a.label.match(/年(\d+)月/);
+      const yearMatchB = b.label.match(/(\d{4})年/);
+      const monthMatchB = b.label.match(/年(\d+)月/);
+
+      const yearA = yearMatchA ? parseInt(yearMatchA[1]) : 0;
+      const monthA = monthMatchA ? parseInt(monthMatchA[1]) : 0;
+      const yearB = yearMatchB ? parseInt(yearMatchB[1]) : 0;
+      const monthB = monthMatchB ? parseInt(monthMatchB[1]) : 0;
+
+      if (yearA !== yearB) {
+        return yearA - yearB;
+      }
+      return monthA - monthB;
+    });
+}
+
+/**
+ * 按季度分组统计日志数量
+ * 季节划分：春 3-5 月、夏 6-8 月、秋 9-11 月、冬 12-2 月
+ */
+export function getQuarterStats(changelogs: Changelog[]): { label: string; count: number }[] {
+  const stats: Record<string, number> = {};
+
+  changelogs.forEach(changelog => {
+    const date = new Date(changelog.date);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
+    let season: string;
+    let seasonYear = year;
+
+    if (month >= 3 && month <= 5) {
+      season = '春';
+    } else if (month >= 6 && month <= 8) {
+      season = '夏';
+    } else if (month >= 9 && month <= 11) {
+      season = '秋';
+    } else {
+      season = '冬';
+      // 12月、1月、2月同属于 12 月那一年的冬季
+      if (month === 1 || month === 2) {
+        seasonYear = year - 1;
+      }
+    }
+
+    const label = `${seasonYear}年${season}`;
+    stats[label] = (stats[label] || 0) + 1;
+  });
+
+  return Object.entries(stats)
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => {
+      const yearMatchA = a.label.match(/(\d{4})年/);
+      const seasonMatchA = a.label.match(/年(春|夏|秋|冬)/);
+      const yearMatchB = b.label.match(/(\d{4})年/);
+      const seasonMatchB = b.label.match(/年(春|夏|秋|冬)/);
+
+      const yearA = yearMatchA ? parseInt(yearMatchA[1]) : 0;
+      const yearB = yearMatchB ? parseInt(yearMatchB[1]) : 0;
+
+      if (yearA !== yearB) {
+        return yearA - yearB;
+      }
+
+      const seasonOrder: Record<string, number> = {
+        '春': 1,
+        '夏': 2,
+        '秋': 3,
+        '冬': 4,
+      };
+
+      const seasonA = seasonMatchA ? seasonOrder[seasonMatchA[1]] || 0 : 0;
+      const seasonB = seasonMatchB ? seasonOrder[seasonMatchB[1]] || 0 : 0;
+
+      return seasonA - seasonB;
+    });
+}
+
+/**
+ * 按年度分组统计日志数量
+ */
+export function getYearStats(changelogs: Changelog[]): { label: string; count: number }[] {
+  const stats: Record<string, number> = {};
+
+  changelogs.forEach(changelog => {
+    const date = new Date(changelog.date);
+    const year = date.getFullYear();
+    const label = `${year}年`;
+    stats[label] = (stats[label] || 0) + 1;
+  });
+
+  return Object.entries(stats)
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => {
+      const yearMatchA = a.label.match(/(\d{4})年/);
+      const yearMatchB = b.label.match(/(\d{4})年/);
+
+      const yearA = yearMatchA ? parseInt(yearMatchA[1]) : 0;
+      const yearB = yearMatchB ? parseInt(yearMatchB[1]) : 0;
+
+      return yearA - yearB;
+    });
+}
+
+/**
+ * 按早中晚时间段统计日志数量
+ * @returns 按时间段分组的统计数组，按数量降序排序
+ */
+export function getDayPartStats(changelogs: Changelog[]): { label: string; count: number }[] {
+  const stats: Record<string, number> = {};
+
+  changelogs.forEach(changelog => {
+    const date = new Date(changelog.date);
+    const hour = date.getHours();
+    let label: string;
+
+    if (hour >= 6 && hour <= 8) {
+      label = '早晨6-8点';
+    } else if (hour >= 9 && hour <= 12) {
+      label = '上午9-12点';
+    } else if (hour >= 13 && hour <= 17) {
+      label = '下午13-17点';
+    } else if (hour >= 18 && hour <= 21) {
+      label = '晚上18-21点';
+    } else {
+      label = '深夜22-5点';
+    }
+
+    stats[label] = (stats[label] || 0) + 1;
+  });
+
+  return Object.entries(stats)
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/**
+ * 按类型分组统计日志数量
+ * @returns 按类型分组的统计数组，按数量降序排序
+ */
+export function getTypeStats(changelogs: Changelog[]): { type: ChangelogType; label: string; count: number }[] {
+  const stats: Record<ChangelogType, number> = {} as Record<ChangelogType, number>;
+
+  changelogs.forEach(changelog => {
+    stats[changelog.type] = (stats[changelog.type] || 0) + 1;
+  });
+
+  return Object.entries(stats)
+    .map(([type, count]) => ({
+      type: type as ChangelogType,
+      label: getChangelogTypeLabel(type as ChangelogType),
+      count
+    }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/**
+ * 成就配置映射
+ */
+const achievementConfig: Record<ChangelogAchievement, { label: string; color: string; priority: number }> = {
+  tired: { label: '略感疲惫', color: '#7366ff', priority: 1 },
+  exhausted: { label: '肝爆了', color: '#e566ff', priority: 2 },
+  smallButComplete: { label: '麻雀虽小五脏俱全', color: '#ff66a6', priority: 3 },
+  lively: { label: '人声鼎沸', color: '#ff9966', priority: 4 },
+};
+
+/**
+ * 计算日志获得的成就
+ * @param commits 关联提交数组
+ * @param contentLineCount 日志内容行数
+ * @returns 成就类型数组
+ */
+export function calculateAchievements(
+  commits: string[],
+  contentLineCount: number
+): ChangelogAchievement[] {
+  const achievements: ChangelogAchievement[] = [];
+
+  // 略感疲惫: 关联提交数量 >= 10 且 < 20
+  if (commits.length >= 10 && commits.length < 20) {
+    achievements.push('tired');
+  }
+
+  // 肝爆了: 关联提交数量 >= 20
+  if (commits.length >= 20) {
+    achievements.push('exhausted');
+  }
+
+  // 麻雀虽小五脏俱全: 关联提交 = 1 且 日志行数 > 55
+  if (commits.length === 1 && contentLineCount > 55) {
+    achievements.push('smallButComplete');
+  }
+
+  return achievements;
+}
+
+/**
+ * 获取成就的中文名称
+ */
+export function getAchievementLabel(achievement: ChangelogAchievement): string {
+  return achievementConfig[achievement]?.label || achievement;
+}
+
+/**
+ * 获取成就的颜色值
+ */
+export function getAchievementColor(achievement: ChangelogAchievement): string {
+  return achievementConfig[achievement]?.color || '#7366ff';
+}
+
+/**
+ * 按优先级排序成就
+ */
+export function sortAchievementsByPriority(achievements: ChangelogAchievement[]): ChangelogAchievement[] {
+  return [...achievements].sort((a, b) => {
+    const priorityA = achievementConfig[a]?.priority || 0;
+    const priorityB = achievementConfig[b]?.priority || 0;
+    return priorityA - priorityB;
+  });
+}
