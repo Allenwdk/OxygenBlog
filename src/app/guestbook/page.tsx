@@ -4,8 +4,7 @@
  */
 'use client';
 
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { useTheme } from 'next-themes';
+import { lazy, Suspense } from 'react';
 import { motion } from 'motion/react';
 import PageHeader from '@/components/ui/PageHeader';
 import { useBackgroundStyle } from '@/hooks/useBackgroundStyle';
@@ -62,17 +61,7 @@ function GuestbookSkeleton() {
 }
 
 export default function Guestbook() {
-  const { theme } = useTheme();
   const { containerStyle } = useBackgroundStyle('guestbook');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, [theme]);
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <div className={`relative overflow-hidden ${containerStyle.className}`} style={containerStyle.style}>
