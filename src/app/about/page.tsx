@@ -870,19 +870,31 @@ function AboutSection({
 /**
  * 星空粒子背景组件
  * 添加闪烁效果 + 缓慢漂浮
+ *
+ * 位置用「序号 + 固定步长」的确定性公式生成，而不是 Math.random()：
+ * Math.random 在服务端预渲染与客户端水合时会给出两组不同的坐标（水合警告），
+ * 而且使用本组件的区块默认是收起的，随机星星对观感没有任何贡献。
  */
 function StarField({ count = 12, className = '' }: { count?: number; className?: string }) {
   const stars = React.useMemo(() => {
-    return Array.from({ length: count }, (_, index) => ({
-      id: index,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      size: Math.random() * 2.5 + 1,
-      delay: Math.random() * 5,
-      duration: Math.random() * 10 + 10,
-      opacity: Math.random() * 0.5 + 0.2,
-      driftX: (Math.random() - 0.5) * 40,
-    }));
+    return Array.from({ length: count }, (_, index) => {
+      // 用黄金比与几个无理数错开取值，避免出现整齐的网格感
+      const golden = 0.6180339887;
+      const left = ((index * golden) % 1) * 100;
+      const top = ((index * 0.7548 + 0.13) % 1) * 100;
+      const bias = ((index * 0.4142 + 0.07) % 1);
+
+      return {
+        id: index,
+        left: `${left}%`,
+        top: `${top}%`,
+        size: 1 + ((index * 0.37) % 1) * 2.5,
+        delay: ((index * 0.53) % 1) * 5,
+        duration: 10 + ((index * 0.29) % 1) * 10,
+        opacity: 0.2 + ((index * 0.61) % 1) * 0.5,
+        driftX: (bias - 0.5) * 40,
+      };
+    });
   }, [count]);
 
   return (
@@ -1203,6 +1215,13 @@ export default function AboutPage() {
   );
 
   // 如果还没有挂载，显示骨架屏避免闪烁
+  /*
+    只在「已挂载」时渲染真实内容这一半保留下来是有原因的：
+    本页面里有多处只能在浏览器里确定的值（拖拽倾斜的高光、随机切换的宣言等），
+    而这些值在服务端预渲染与客户端水合时必须一致，否则 React 会整棵树重新渲染。
+    代价是静态导出的 /about 只有这层骨架屏，正文靠 JS 补上——页面本身的
+    SEO 需求很低（内容都在配置里），故按此取舍。
+  */
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-muted via-background to-muted dark:from-background dark:via-card dark:to-background py-8 pt-[80px]">
